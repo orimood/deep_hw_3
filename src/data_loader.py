@@ -14,7 +14,7 @@ import pretty_midi
 from tqdm import tqdm
 
 from . import config
-from .midi_features import extract_midi_features
+from .midi_features import extract_midi_features, get_temporal_midi_features
 
 
 class Vocabulary:
@@ -109,9 +109,9 @@ class LyricsDataset(Dataset):
         # Build word embedding matrix
         self.embedding_matrix = self._build_embedding_matrix()
 
-        # Pre-extract MIDI features for all songs
+        # Pre-extract MIDI features for all songs (both global and temporal)
         print("Extracting MIDI features...")
-        self.midi_features = self._extract_all_midi_features()
+        self.midi_features, self.midi_temporal_features = self._extract_all_midi_features()
 
     def _load_csv(self, csv_path: str) -> pd.DataFrame:
         """Load and parse the CSV file."""
@@ -153,9 +153,13 @@ class LyricsDataset(Dataset):
         print(f"Found {found_count}/{vocab_size} words in Word2Vec model")
         return embedding_matrix
 
-    def _extract_all_midi_features(self) -> Dict[str, np.ndarray]:
-        """Extract MIDI features for all songs."""
+    def _extract_all_midi_features(self) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray]]:
+        """Extract both global and temporal MIDI features for all songs."""
         midi_features = {}
+        midi_temporal_features = {}
+
+        num_frames = 50  # Number of temporal frames
+        frame_dim = config.MIDI_FEATURE_DIM // 4  # Dimension per frame
 
         for _, row in tqdm(self.data.iterrows(), total=len(self.data)):
             midi_filename = self._get_midi_filename(row['artist'], row['song'])
@@ -165,11 +169,16 @@ class LyricsDataset(Dataset):
 
             if midi_path.exists():
                 try:
+                    # Extract global features
                     features = extract_midi_features(str(midi_path))
                     midi_features[key] = features
+                    # Extract temporal features
+                    temporal_features = get_temporal_midi_features(str(midi_path), num_frames)
+                    midi_temporal_features[key] = temporal_features
                 except Exception as e:
                     print(f"Error processing {midi_filename}: {e}")
                     midi_features[key] = np.zeros(config.MIDI_FEATURE_DIM)
+                    midi_temporal_features[key] = np.zeros((num_frames, frame_dim))
             else:
                 # Try alternative filename formats
                 found = False
@@ -179,6 +188,8 @@ class LyricsDataset(Dataset):
                         try:
                             features = extract_midi_features(str(midi_file))
                             midi_features[key] = features
+                            temporal_features = get_temporal_midi_features(str(midi_file), num_frames)
+                            midi_temporal_features[key] = temporal_features
                             found = True
                             break
                         except Exception as e:
@@ -186,13 +197,14 @@ class LyricsDataset(Dataset):
 
                 if not found:
                     midi_features[key] = np.zeros(config.MIDI_FEATURE_DIM)
+                    midi_temporal_features[key] = np.zeros((num_frames, frame_dim))
 
-        return midi_features
+        return midi_features, midi_temporal_features
 
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         row = self.data.iloc[idx]
 
         # Encode lyrics
@@ -209,21 +221,25 @@ class LyricsDataset(Dataset):
         input_seq = [sos_idx] + lyrics_indices
         target_seq = lyrics_indices + [eos_idx]
 
-        # Get MIDI features
+        # Get MIDI features (both global and temporal)
         key = f"{row['artist']}_{row['song']}"
         midi_feat = self.midi_features.get(key, np.zeros(config.MIDI_FEATURE_DIM))
+        midi_temporal = self.midi_temporal_features.get(
+            key, np.zeros((50, config.MIDI_FEATURE_DIM // 4))
+        )
 
         return (
             torch.tensor(input_seq, dtype=torch.long),
             torch.tensor(target_seq, dtype=torch.long),
             torch.tensor(midi_feat, dtype=torch.float32),
+            torch.tensor(midi_temporal, dtype=torch.float32),
             torch.tensor(len(input_seq), dtype=torch.long)
         )
 
 
 def collate_fn(batch):
     """Custom collate function for variable length sequences."""
-    inputs, targets, midi_feats, lengths = zip(*batch)
+    inputs, targets, midi_feats, midi_temporal, lengths = zip(*batch)
 
     # Pad sequences
     pad_idx = 0  # PAD token index
@@ -231,9 +247,10 @@ def collate_fn(batch):
     targets_padded = pad_sequence(targets, batch_first=True, padding_value=pad_idx)
 
     midi_feats = torch.stack(midi_feats)
+    midi_temporal = torch.stack(midi_temporal)
     lengths = torch.stack(lengths)
 
-    return inputs_padded, targets_padded, midi_feats, lengths
+    return inputs_padded, targets_padded, midi_feats, midi_temporal, lengths
 
 
 def get_dataloaders(batch_size: int = config.BATCH_SIZE,

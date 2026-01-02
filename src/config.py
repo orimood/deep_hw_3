@@ -1,6 +1,5 @@
 """Configuration settings for the lyrics generation project."""
 
-import os
 from pathlib import Path
 
 # Project paths

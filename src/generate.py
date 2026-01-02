@@ -9,7 +9,6 @@ from pathlib import Path
 
 from . import config
 from .data_loader import Vocabulary
-from .train import create_temporal_from_global
 
 
 def sample_next_word(logits: torch.Tensor,
@@ -53,6 +52,7 @@ def sample_next_word(logits: torch.Tensor,
 
 def generate_lyrics(model: nn.Module,
                     midi_features: torch.Tensor,
+                    midi_temporal: torch.Tensor,
                     vocab: Vocabulary,
                     start_word: str,
                     device: torch.device,
@@ -66,7 +66,8 @@ def generate_lyrics(model: nn.Module,
 
     Args:
         model: Trained lyrics generation model
-        midi_features: MIDI features [1, midi_dim] or [1, num_frames, frame_dim]
+        midi_features: Global MIDI features [1, midi_dim]
+        midi_temporal: Temporal MIDI features [1, num_frames, frame_dim]
         vocab: Vocabulary object
         start_word: Starting word for generation
         device: Device to run on
@@ -97,15 +98,11 @@ def generate_lyrics(model: nn.Module,
 
     # Prepare MIDI features
     midi_features = midi_features.to(device)
+    midi_temporal = midi_temporal.to(device)
 
+    # Select appropriate MIDI input based on model type
     if is_attention_model:
-        # Convert to temporal features if needed
-        if midi_features.dim() == 2:
-            num_frames = 50
-            frame_dim = config.MIDI_FEATURE_DIM // 4
-            midi_input = create_temporal_from_global(midi_features, num_frames, frame_dim)
-        else:
-            midi_input = midi_features
+        midi_input = midi_temporal
     else:
         midi_input = midi_features
 
@@ -190,6 +187,7 @@ def format_lyrics(words: List[str]) -> str:
 
 def generate_multiple_lyrics(model: nn.Module,
                              midi_features: torch.Tensor,
+                             midi_temporal: torch.Tensor,
                              vocab: Vocabulary,
                              start_words: List[str],
                              device: torch.device,
@@ -200,7 +198,8 @@ def generate_multiple_lyrics(model: nn.Module,
 
     Args:
         model: Trained model
-        midi_features: MIDI features
+        midi_features: Global MIDI features
+        midi_temporal: Temporal MIDI features
         vocab: Vocabulary
         start_words: List of starting words
         device: Device to run on
@@ -217,6 +216,7 @@ def generate_multiple_lyrics(model: nn.Module,
         lyrics = generate_lyrics(
             model=model,
             midi_features=midi_features,
+            midi_temporal=midi_temporal,
             vocab=vocab,
             start_word=start_word,
             device=device,
@@ -264,9 +264,10 @@ def evaluate_test_set(global_model: nn.Module,
     all_results = {}
 
     for idx in range(len(test_dataset)):
-        # Get test sample
-        inputs, targets, midi_features, length = test_dataset[idx]
+        # Get test sample (now includes both global and temporal MIDI features)
+        inputs, targets, midi_features, midi_temporal, length = test_dataset[idx]
         midi_features = midi_features.unsqueeze(0)  # Add batch dimension
+        midi_temporal = midi_temporal.unsqueeze(0)  # Add batch dimension
 
         # Get song info
         song_info = test_dataset.data.iloc[idx]
@@ -283,6 +284,7 @@ def evaluate_test_set(global_model: nn.Module,
         global_results = generate_multiple_lyrics(
             model=global_model,
             midi_features=midi_features,
+            midi_temporal=midi_temporal,
             vocab=vocab,
             start_words=start_words,
             device=device,
@@ -300,6 +302,7 @@ def evaluate_test_set(global_model: nn.Module,
         attention_results = generate_multiple_lyrics(
             model=attention_model,
             midi_features=midi_features,
+            midi_temporal=midi_temporal,
             vocab=vocab,
             start_words=start_words,
             device=device,

@@ -8,6 +8,7 @@ from torch.nn.utils import clip_grad_norm_
 from tqdm import tqdm
 import numpy as np
 import random
+import math
 from pathlib import Path
 from typing import Dict, Tuple, Optional
 import time
@@ -30,7 +31,6 @@ def train_epoch(model: nn.Module,
                 optimizer: optim.Optimizer,
                 criterion: nn.Module,
                 device: torch.device,
-                teacher_forcing_ratio: float = config.TEACHER_FORCING_RATIO,
                 gradient_clip: float = config.GRADIENT_CLIP,
                 is_attention_model: bool = False) -> float:
     """
@@ -42,7 +42,6 @@ def train_epoch(model: nn.Module,
         optimizer: Optimizer
         criterion: Loss function
         device: Device to train on
-        teacher_forcing_ratio: Probability of using teacher forcing
         gradient_clip: Gradient clipping value
         is_attention_model: Whether model uses attention
 
@@ -54,29 +53,21 @@ def train_epoch(model: nn.Module,
     num_batches = 0
 
     for batch in tqdm(train_loader, desc="Training", leave=False):
-        inputs, targets, midi_features, lengths = batch
+        inputs, targets, midi_features, midi_temporal, lengths = batch
 
         inputs = inputs.to(device)
         targets = targets.to(device)
         midi_features = midi_features.to(device)
+        midi_temporal = midi_temporal.to(device)
 
         optimizer.zero_grad()
 
         # Forward pass
         if is_attention_model:
-            # For attention model, we need temporal MIDI features
-            # Expand global features to temporal sequence for now
-            # (In practice, you'd use get_temporal_midi_features)
-            batch_size = midi_features.size(0)
-            num_frames = 50
-            frame_dim = config.MIDI_FEATURE_DIM // 4
-
-            # Create simple temporal representation from global features
-            midi_temporal = create_temporal_from_global(midi_features, num_frames, frame_dim)
-            midi_temporal = midi_temporal.to(device)
-
+            # Use real temporal MIDI features for attention model
             outputs, _, attention_weights = model(inputs, midi_temporal)
         else:
+            # Use global MIDI features for global model
             outputs, _ = model(inputs, midi_features)
 
         # Compute loss
@@ -127,21 +118,16 @@ def validate(model: nn.Module,
 
     with torch.no_grad():
         for batch in tqdm(val_loader, desc="Validating", leave=False):
-            inputs, targets, midi_features, lengths = batch
+            inputs, targets, midi_features, midi_temporal, lengths = batch
 
             inputs = inputs.to(device)
             targets = targets.to(device)
             midi_features = midi_features.to(device)
+            midi_temporal = midi_temporal.to(device)
 
             # Forward pass
             if is_attention_model:
-                batch_size = midi_features.size(0)
-                num_frames = 50
-                frame_dim = config.MIDI_FEATURE_DIM // 4
-
-                midi_temporal = create_temporal_from_global(midi_features, num_frames, frame_dim)
-                midi_temporal = midi_temporal.to(device)
-
+                # Use real temporal MIDI features
                 outputs, _, _ = model(inputs, midi_temporal)
             else:
                 outputs, _ = model(inputs, midi_features)
@@ -156,34 +142,6 @@ def validate(model: nn.Module,
             num_batches += 1
 
     return total_loss / num_batches
-
-
-def create_temporal_from_global(global_features: torch.Tensor,
-                                 num_frames: int,
-                                 frame_dim: int) -> torch.Tensor:
-    """
-    Create temporal MIDI features from global features.
-
-    This is a simple approach that tiles and adds positional variation.
-    For better results, use get_temporal_midi_features during data loading.
-    """
-    batch_size = global_features.size(0)
-
-    # Take first frame_dim features and tile them
-    base_features = global_features[:, :frame_dim]  # [batch, frame_dim]
-
-    # Create temporal variation by adding position-dependent noise
-    temporal = base_features.unsqueeze(1).repeat(1, num_frames, 1)  # [batch, num_frames, frame_dim]
-
-    # Add positional encoding
-    positions = torch.arange(num_frames, device=global_features.device).float()
-    positions = positions / num_frames  # Normalize to [0, 1]
-    positions = positions.unsqueeze(0).unsqueeze(2)  # [1, num_frames, 1]
-
-    # Slight modulation based on position
-    temporal = temporal * (1 + 0.1 * torch.sin(positions * 3.14159))
-
-    return temporal
 
 
 def train_model(model: nn.Module,
@@ -264,6 +222,8 @@ def train_model(model: nn.Module,
         # Log to TensorBoard
         writer.add_scalar('Loss/train', train_loss, epoch)
         writer.add_scalar('Loss/validation', val_loss, epoch)
+        writer.add_scalar('Perplexity/train', math.exp(train_loss), epoch)
+        writer.add_scalar('Perplexity/validation', math.exp(val_loss), epoch)
         writer.add_scalar('Learning_Rate', current_lr, epoch)
 
         print(f"  Train Loss: {train_loss:.4f}")
