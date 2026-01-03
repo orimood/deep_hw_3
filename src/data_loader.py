@@ -12,9 +12,16 @@ import gensim.downloader as api
 from typing import Dict, List, Tuple, Optional
 import pretty_midi
 from tqdm import tqdm
+import pickle
 
 from . import config
 from .midi_features import extract_midi_features, get_temporal_midi_features
+
+# Cache paths
+CACHE_DIR = config.PROJECT_ROOT / "cache"
+EMBEDDING_CACHE = CACHE_DIR / "embedding_matrix.npz"
+VOCAB_CACHE = CACHE_DIR / "vocabulary.pkl"
+MIDI_FEATURES_CACHE = CACHE_DIR / "midi_features.pkl"
 
 
 class Vocabulary:
@@ -73,6 +80,26 @@ class Vocabulary:
     def __len__(self):
         return len(self.word2idx)
 
+    def save(self, path: Path):
+        """Save vocabulary to file."""
+        with open(path, 'wb') as f:
+            pickle.dump({
+                'word2idx': self.word2idx,
+                'idx2word': self.idx2word,
+                'word_count': self.word_count
+            }, f)
+
+    @classmethod
+    def load(cls, path: Path) -> 'Vocabulary':
+        """Load vocabulary from file."""
+        vocab = cls.__new__(cls)
+        with open(path, 'rb') as f:
+            data = pickle.load(f)
+        vocab.word2idx = data['word2idx']
+        vocab.idx2word = data['idx2word']
+        vocab.word_count = data['word_count']
+        return vocab
+
 
 class LyricsDataset(Dataset):
     """Dataset for lyrics with MIDI features."""
@@ -83,35 +110,69 @@ class LyricsDataset(Dataset):
                  vocab: Optional[Vocabulary] = None,
                  word2vec_model = None,
                  is_train: bool = True,
-                 max_seq_length: int = 200):
+                 max_seq_length: int = 200,
+                 use_cache: bool = True):
 
         self.midi_dir = Path(midi_dir)
         self.is_train = is_train
         self.max_seq_length = max_seq_length
+        self.use_cache = use_cache
+
+        # Create cache directory
+        if use_cache:
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
         # Load data
         self.data = self._load_csv(csv_path)
 
         # Build or use vocabulary
         if vocab is None:
-            self.vocab = Vocabulary()
-            for _, row in self.data.iterrows():
-                self.vocab.add_sentence(row['lyrics'])
+            if use_cache and VOCAB_CACHE.exists():
+                print("Loading vocabulary from cache...")
+                self.vocab = Vocabulary.load(VOCAB_CACHE)
+            else:
+                print("Building vocabulary...")
+                self.vocab = Vocabulary()
+                for _, row in self.data.iterrows():
+                    self.vocab.add_sentence(row['lyrics'])
+                if use_cache:
+                    self.vocab.save(VOCAB_CACHE)
+                    print(f"Vocabulary saved to {VOCAB_CACHE}")
         else:
             self.vocab = vocab
 
-        # Load Word2Vec model
+        # Load Word2Vec model and build embedding matrix
         self.word2vec_model = word2vec_model
-        if self.word2vec_model is None:
-            print("Loading Word2Vec model...")
-            self.word2vec_model = api.load(config.WORD2VEC_MODEL)
-
-        # Build word embedding matrix
-        self.embedding_matrix = self._build_embedding_matrix()
+        if use_cache and EMBEDDING_CACHE.exists():
+            print("Loading embedding matrix from cache...")
+            data = np.load(EMBEDDING_CACHE)
+            self.embedding_matrix = data['embedding_matrix']
+        else:
+            if self.word2vec_model is None:
+                print("Loading Word2Vec model...")
+                self.word2vec_model = api.load(config.WORD2VEC_MODEL)
+            self.embedding_matrix = self._build_embedding_matrix()
+            if use_cache:
+                np.savez(EMBEDDING_CACHE, embedding_matrix=self.embedding_matrix)
+                print(f"Embedding matrix saved to {EMBEDDING_CACHE}")
 
         # Pre-extract MIDI features for all songs (both global and temporal)
-        print("Extracting MIDI features...")
-        self.midi_features, self.midi_temporal_features = self._extract_all_midi_features()
+        if use_cache and MIDI_FEATURES_CACHE.exists():
+            print("Loading MIDI features from cache...")
+            with open(MIDI_FEATURES_CACHE, 'rb') as f:
+                cache_data = pickle.load(f)
+            self.midi_features = cache_data['global']
+            self.midi_temporal_features = cache_data['temporal']
+        else:
+            print("Extracting MIDI features...")
+            self.midi_features, self.midi_temporal_features = self._extract_all_midi_features()
+            if use_cache:
+                with open(MIDI_FEATURES_CACHE, 'wb') as f:
+                    pickle.dump({
+                        'global': self.midi_features,
+                        'temporal': self.midi_temporal_features
+                    }, f)
+                print(f"MIDI features saved to {MIDI_FEATURES_CACHE}")
 
     def _load_csv(self, csv_path: str) -> pd.DataFrame:
         """Load and parse the CSV file."""
