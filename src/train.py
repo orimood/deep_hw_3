@@ -173,7 +173,7 @@ def train_model(model: nn.Module,
     # Setup
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=5, verbose=True
+        optimizer, mode='min', factor=0.5, patience=5
     )
 
     # Loss function - ignore padding token (index 0)
