@@ -19,9 +19,9 @@ from pathlib import Path
 from typing import Dict, Optional
 import time
 
-import config
-from model import LyricsLSTMGlobal, LyricsLSTMAttention
-from losses import create_loss_function
+from . import config
+from .model import LyricsLSTMGlobal, LyricsLSTMAttention
+from .losses import create_loss_function
 
 
 def set_seed(seed: int = config.SEED):

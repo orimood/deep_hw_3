@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import numpy as np
 from typing import Tuple, Optional
 
-import config
+from . import config
 
 
 class LyricsLSTMGlobal(nn.Module):

@@ -14,9 +14,9 @@ import gensim.downloader as api
 from tqdm import tqdm
 import pickle
 
-import config
-from vocab import Vocabulary, build_vocab_from_texts
-from midi_features import extract_global_features, extract_temporal_features
+from . import config
+from .vocab import Vocabulary, build_vocab_from_texts
+from .midi_features import extract_global_features, extract_temporal_features
 
 
 class LyricsDataset(Dataset):

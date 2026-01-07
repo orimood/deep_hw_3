@@ -9,7 +9,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, List, Optional
 
-import config
+from . import config
 
 
 class Vocabulary:

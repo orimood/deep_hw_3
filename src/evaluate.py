@@ -16,11 +16,11 @@ from typing import Dict, List, Tuple
 from tqdm import tqdm
 import json
 
-import config
-from vocab import Vocabulary
-from model import LyricsLSTMGlobal, LyricsLSTMAttention
-from losses import create_loss_function
-from generate import batch_generate_for_test, generate_lyrics_global, generate_lyrics_attention
+from . import config
+from .vocab import Vocabulary
+from .model import LyricsLSTMGlobal, LyricsLSTMAttention
+from .losses import create_loss_function
+from .generate import batch_generate_for_test, generate_lyrics_global, generate_lyrics_attention
 
 
 def compute_perplexity(

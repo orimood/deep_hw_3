@@ -11,9 +11,9 @@ import numpy as np
 from typing import List, Optional, Tuple
 from pathlib import Path
 
-import config
-from vocab import Vocabulary
-from model import LyricsLSTMGlobal, LyricsLSTMAttention
+from . import config
+from .vocab import Vocabulary
+from .model import LyricsLSTMGlobal, LyricsLSTMAttention
 
 
 def sample_with_temperature(

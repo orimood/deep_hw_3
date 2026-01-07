@@ -7,7 +7,7 @@ import numpy as np
 import pretty_midi
 from typing import Tuple, Optional
 
-import config
+from . import config
 
 
 def extract_global_features(midi_path: str) -> np.ndarray:

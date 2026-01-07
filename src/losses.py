@@ -12,8 +12,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Dict
 
-import config
-from vocab import Vocabulary
+from . import config
+from .vocab import Vocabulary
 
 
 class StructureAwareLoss(nn.Module):
