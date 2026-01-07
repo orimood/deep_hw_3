@@ -19,7 +19,9 @@ from .model import LyricsLSTMGlobal, LyricsLSTMAttention
 def sample_with_temperature(
     logits: torch.Tensor,
     temperature: float = config.TEMPERATURE,
-    top_k: int = config.TOP_K
+    top_k: int = config.TOP_K,
+    repetition_penalty_tokens: List[int] = None,
+    repetition_penalty: float = 1.0
 ) -> int:
     """
     Sample from logits with temperature scaling and top-k filtering.
@@ -30,10 +32,18 @@ def sample_with_temperature(
         logits: Raw logits [vocab_size]
         temperature: Controls randomness (lower = more deterministic)
         top_k: Only sample from top k tokens
+        repetition_penalty_tokens: Token indices to penalize
+        repetition_penalty: Penalty factor (>1.0 reduces probability)
 
     Returns:
         Sampled token index
     """
+    # Apply repetition penalty to specific tokens
+    if repetition_penalty_tokens and repetition_penalty > 1.0:
+        for token_idx in repetition_penalty_tokens:
+            if token_idx < logits.size(-1):
+                logits[token_idx] = logits[token_idx] / repetition_penalty
+
     # Apply temperature
     logits = logits / temperature
 
@@ -64,7 +74,9 @@ def generate_lyrics_global(
     max_length: int = config.MAX_GENERATION_LENGTH,
     temperature: float = config.TEMPERATURE,
     top_k: int = config.TOP_K,
-    device: torch.device = config.DEVICE
+    device: torch.device = config.DEVICE,
+    min_length: int = 100,
+    min_line_words: int = 4
 ) -> Tuple[str, List[str]]:
     """
     Generate lyrics using global melody conditioning model.
@@ -78,6 +90,8 @@ def generate_lyrics_global(
         temperature: Sampling temperature
         top_k: Top-k filtering parameter
         device: Device to run on
+        min_length: Minimum tokens before allowing EOS (enforces longer output)
+        min_line_words: Minimum words before allowing NEWLINE (prevents short lines)
 
     Returns:
         generated_text: Full generated lyrics string
@@ -87,6 +101,12 @@ def generate_lyrics_global(
 
     # Prepare MIDI features
     midi_tensor = torch.tensor(midi_features, dtype=torch.float32).unsqueeze(0).to(device)
+
+    # Get NEWLINE token indices
+    newline_indices = []
+    for token in [config.NEWLINE_TOKEN, '<newline>', 'newline']:
+        if token in vocab.word2idx:
+            newline_indices.append(vocab.word2idx[token])
 
     # Encode starting words
     tokens = [vocab.sos_idx]
@@ -99,6 +119,7 @@ def generate_lyrics_global(
 
     generated_tokens = list(start_words)
     hidden = None
+    words_since_newline = len(start_words)  # Track words on current line
 
     with torch.no_grad():
         # Process start sequence to get initial hidden state
@@ -113,13 +134,32 @@ def generate_lyrics_global(
             # Sample next token
             next_idx = sample_with_temperature(logits, temperature, top_k)
 
-            # Check for EOS
+            # Enforce minimum line length - skip NEWLINE if line too short
+            if next_idx in newline_indices and words_since_newline < min_line_words:
+                # Re-sample excluding NEWLINE tokens
+                logits_no_newline = logits.clone()
+                for nl_idx in newline_indices:
+                    logits_no_newline[nl_idx] = float('-inf')
+                next_idx = sample_with_temperature(logits_no_newline, temperature, top_k)
+
+            # Check for EOS - skip if under min_length
             if next_idx == vocab.eos_idx:
-                break
+                if len(generated_tokens) >= min_length:
+                    break
+                else:
+                    # Force re-sample excluding EOS
+                    logits[vocab.eos_idx] = float('-inf')
+                    next_idx = sample_with_temperature(logits, temperature, top_k)
 
             # Convert to word and add to generated
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
             generated_tokens.append(word)
+
+            # Track words since newline
+            if next_idx in newline_indices or word.lower() in ['<newline>', 'newline']:
+                words_since_newline = 0
+            else:
+                words_since_newline += 1
 
             # Prepare next input
             next_input = torch.tensor([[next_idx]], dtype=torch.long).to(device)
@@ -142,7 +182,10 @@ def generate_lyrics_attention(
     max_length: int = config.MAX_GENERATION_LENGTH,
     temperature: float = config.TEMPERATURE,
     top_k: int = config.TOP_K,
-    device: torch.device = config.DEVICE
+    device: torch.device = config.DEVICE,
+    min_length: int = 100,
+    newline_penalty: float = 2.5,
+    min_line_words: int = 4
 ) -> Tuple[str, List[str], torch.Tensor]:
     """
     Generate lyrics using attention-based melody conditioning model.
@@ -156,6 +199,9 @@ def generate_lyrics_attention(
         temperature: Sampling temperature
         top_k: Top-k filtering parameter
         device: Device to run on
+        min_length: Minimum tokens before allowing EOS (enforces longer output)
+        newline_penalty: Penalty for consecutive NEWLINEs (prevents degeneration)
+        min_line_words: Minimum words before allowing NEWLINE (prevents short lines)
 
     Returns:
         generated_text: Full generated lyrics string
@@ -166,6 +212,12 @@ def generate_lyrics_attention(
 
     # Prepare MIDI features
     midi_tensor = torch.tensor(midi_temporal, dtype=torch.float32).unsqueeze(0).to(device)
+
+    # Get NEWLINE token indices for penalty
+    newline_indices = []
+    for token in [config.NEWLINE_TOKEN, '<newline>', 'newline']:
+        if token in vocab.word2idx:
+            newline_indices.append(vocab.word2idx[token])
 
     # Encode starting words
     tokens = [vocab.sos_idx]
@@ -179,6 +231,8 @@ def generate_lyrics_attention(
     generated_tokens = list(start_words)
     all_attention_weights = []
     hidden = None
+    consecutive_newlines = 0
+    words_since_newline = len(start_words)  # Track words on current line
 
     with torch.no_grad():
         # Process start sequence to get initial hidden state
@@ -193,16 +247,53 @@ def generate_lyrics_attention(
 
         # Generate tokens one by one
         for _ in range(max_length - len(start_words)):
-            # Sample next token
-            next_idx = sample_with_temperature(logits, temperature, top_k)
+            # Apply exponential penalty for consecutive NEWLINEs
+            penalty = newline_penalty ** consecutive_newlines if consecutive_newlines > 0 else 1.0
+            penalty_tokens = newline_indices if penalty > 1.0 else None
 
-            # Check for EOS
+            # Sample next token
+            next_idx = sample_with_temperature(
+                logits.clone(), temperature, top_k,
+                repetition_penalty_tokens=penalty_tokens,
+                repetition_penalty=penalty
+            )
+
+            # Enforce minimum line length - skip NEWLINE if line too short
+            if next_idx in newline_indices and words_since_newline < min_line_words:
+                # Re-sample excluding NEWLINE tokens
+                logits_no_newline = logits.clone()
+                for nl_idx in newline_indices:
+                    logits_no_newline[nl_idx] = float('-inf')
+                next_idx = sample_with_temperature(
+                    logits_no_newline, temperature, top_k,
+                    repetition_penalty_tokens=penalty_tokens,
+                    repetition_penalty=penalty
+                )
+
+            # Check for EOS - skip if under min_length
             if next_idx == vocab.eos_idx:
-                break
+                if len(generated_tokens) >= min_length:
+                    break
+                else:
+                    # Force re-sample excluding EOS
+                    logits[vocab.eos_idx] = float('-inf')
+                    next_idx = sample_with_temperature(
+                        logits.clone(), temperature, top_k,
+                        repetition_penalty_tokens=penalty_tokens,
+                        repetition_penalty=penalty
+                    )
 
             # Convert to word and add to generated
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
             generated_tokens.append(word)
+
+            # Track consecutive NEWLINEs and words since newline
+            if next_idx in newline_indices or word.lower() in ['<newline>', 'newline']:
+                consecutive_newlines += 1
+                words_since_newline = 0  # Reset word counter on newline
+            else:
+                consecutive_newlines = 0
+                words_since_newline += 1  # Increment word counter
 
             # Prepare next input
             next_input = torch.tensor([[next_idx]], dtype=torch.long).to(device)

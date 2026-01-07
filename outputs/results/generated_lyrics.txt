@@ -1,214 +1,222 @@
-
 ============================================================
-Song: the bangles -  eternal flame
-============================================================
-
---- Approach: GLOBAL ---
-
-Start word: 'love'
-----------------------------------------
-love all me is to
-you
-a
-you
-
-Start word: 'the'
-----------------------------------------
-the and i a got
-you i the me
-
-Start word: 'i'
-----------------------------------------
-i a out i'm in in you
-
---- Approach: ATTENTION ---
-
-Start word: 'love'
-----------------------------------------
-love i the oh now
-it the are
-it's me
-
-Start word: 'the'
-----------------------------------------
-the when time the
-up i out when
-and
-i
-
-Start word: 'i'
-----------------------------------------
-i all baby that i
-when you but come it's
-but
-
-============================================================
-Song: billy joel -  honesty
+LYRICS GENERATION
 ============================================================
 
---- Approach: GLOBAL ---
+Loading vocabulary...
+Loaded 600 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_train_set.csv
+Loading vocabulary from cache...
+Vocabulary loaded from /Users/orimood/Desktop/homework/deep_hw_3/outputs/cache/vocab.pkl: 7521 words
+Loading embeddings from cache...
+Loading MIDI features from cache...
+Train size: 540, Validation size: 60
 
-Start word: 'love'
-----------------------------------------
-love you the like up like my with
-in
+Loading attention model...
 
-Start word: 'the'
-----------------------------------------
-the have a the
-i i want
-you
+ATTENTION Model:
+  Total parameters: 10,228,525
+  Trainable parameters: 7,972,225
+Loaded checkpoint from /Users/orimood/Desktop/homework/deep_hw_3/outputs/models/lyrics_attention_best.pt
+  Epoch: 49
+  Val Loss: 7.8923
 
-Start word: 'i'
-----------------------------------------
-i i'm the got i the and the
+Using test song 0 for MIDI features...
+Loaded 5 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_test_set.csv
+Loading MIDI features from cache...
+Song: the bangles - eternal flame
 
---- Approach: ATTENTION ---
+Starting words: ['love']
+Temperature: 0.8
+Max length: 200
 
-Start word: 'love'
-----------------------------------------
-love don't oh at to
-to the
-down
+------------------------------------------------------------
+GENERATED LYRICS
+------------------------------------------------------------
 
-Start word: 'the'
-----------------------------------------
-the you on the i'm
-the
-the come the in your
+love i love to the boat
+i would be so for you
+but i need it again
+i want you and
+sweet and love it
+no shame all i
+at my heart and
+with me but i
+i have to ever
+i need the only
+i won't be a
+it's the day that
+you do i do
+i be if i
+so i do to
+i would be it
+the way i say
+you do you do
+do me you know
+you can't love me
+and do me i know
+do you do my
+it baby there's no
+you don't know that
+one i can it
+you got me strength
+my love is your
+me baby you don't
+me do i want
+love you go me
+baby i'm like nothing
+you never you
 
-Start word: 'i'
-----------------------------------------
-i the have don't
-the
-is the of
-and
-
-============================================================
-Song: cardigans -  lovefool
-============================================================
-
---- Approach: GLOBAL ---
-
-Start word: 'love'
-----------------------------------------
-love and you
-all
-oh
-it
-you
-
-Start word: 'the'
-----------------------------------------
-the of it's was
-do
-
-Start word: 'i'
-----------------------------------------
-i the
-i
-do
-
---- Approach: ATTENTION ---
-
-Start word: 'love'
-----------------------------------------
-love been
-a we the
-it's the me
-
-Start word: 'the'
-----------------------------------------
-the in a
-is know
-i you
-i i is
-it
-
-Start word: 'i'
-----------------------------------------
-i i have on you in
-and
-in the you my
+(164 tokens generated)
 
 ============================================================
-Song: aqua -  barbie girl
-============================================================
 
---- Approach: GLOBAL ---
 
-Start word: 'love'
-----------------------------------------
-love it the oh you love
-it
-
-Start word: 'the'
-----------------------------------------
-the in do out and was i
-
-Start word: 'i'
-----------------------------------------
-i is we is i
-
---- Approach: ATTENTION ---
-
-Start word: 'love'
-----------------------------------------
-love if oh a of is and see
-
-Start word: 'the'
-----------------------------------------
-the hi i for to in
-you
-and
-
-Start word: 'i'
-----------------------------------------
-i the you your was in on
-the
-of
-in
+========== SAMPLE 2 ==========
 
 ============================================================
-Song: blink 182 -  all the small things
+LYRICS GENERATION
 ============================================================
 
---- Approach: GLOBAL ---
+Loading vocabulary...
+Loaded 600 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_train_set.csv
+Loading vocabulary from cache...
+Vocabulary loaded from /Users/orimood/Desktop/homework/deep_hw_3/outputs/cache/vocab.pkl: 7521 words
+Loading embeddings from cache...
+Loading MIDI features from cache...
+Train size: 540, Validation size: 60
 
-Start word: 'love'
-----------------------------------------
-love like i your the you it
-me
-the
+Loading attention model...
 
-Start word: 'the'
-----------------------------------------
-the do me to was i the
-the
+ATTENTION Model:
+  Total parameters: 10,228,525
+  Trainable parameters: 7,972,225
+Loaded checkpoint from /Users/orimood/Desktop/homework/deep_hw_3/outputs/models/lyrics_attention_best.pt
+  Epoch: 49
+  Val Loss: 7.8923
 
-Start word: 'i'
-----------------------------------------
-i is
-to me me i'm
+Using test song 1 for MIDI features...
+Loaded 5 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_test_set.csv
+Loading MIDI features from cache...
+Song: billy joel - honesty
 
---- Approach: ATTENTION ---
+Starting words: ['the', 'night']
+Temperature: 0.8
+Max length: 200
 
-Start word: 'love'
-----------------------------------------
-love i in i'm a down we
-you
-the
+------------------------------------------------------------
+GENERATED LYRICS
+------------------------------------------------------------
 
-Start word: 'the'
-----------------------------------------
-the i yeah a a to and know
-and
-to a
-the
-you
+the night is a bogart in early
+and the is the light
+i'm with the sun
+on the air of the
+of the one of
+and the time and
+out the night is
+that i came the
+and the one the
+of so that i
+known to you to
+my eyes and i say
+that you ain't all
+way the day the
+and i made a
+to your heart to
+your beautiful room in
+night on my name
+and i can tell
+i could change my
+and then it i
+was the love of my
+is a a to
+i know it's the
+you look i don't
+so that i can't
+you don't see me
+you in my love
+and me ain't do
+now i tell to
+i don't know anything
+but i know how
+one you never i
+you won't be
 
-Start word: 'i'
-----------------------------------------
-i in the my to the the in
-a
-it
+(175 tokens generated)
+
+============================================================
+
+
+========== SAMPLE 3 ==========
+
+============================================================
+LYRICS GENERATION
+============================================================
+
+Loading vocabulary...
+Loaded 600 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_train_set.csv
+Loading vocabulary from cache...
+Vocabulary loaded from /Users/orimood/Desktop/homework/deep_hw_3/outputs/cache/vocab.pkl: 7521 words
+Loading embeddings from cache...
+Loading MIDI features from cache...
+Train size: 540, Validation size: 60
+
+Loading attention model...
+
+ATTENTION Model:
+  Total parameters: 10,228,525
+  Trainable parameters: 7,972,225
+Loaded checkpoint from /Users/orimood/Desktop/homework/deep_hw_3/outputs/models/lyrics_attention_best.pt
+  Epoch: 49
+  Val Loss: 7.8923
+
+Using test song 2 for MIDI features...
+Loaded 5 songs from /Users/orimood/Desktop/homework/deep_hw_3/data/lyrics_test_set.csv
+Loading MIDI features from cache...
+Song: cardigans - lovefool
+
+Starting words: ['i', 'want', 'to']
+Temperature: 0.8
+Max length: 200
+
+------------------------------------------------------------
+GENERATED LYRICS
+------------------------------------------------------------
+
+i want to make you see you
+that i don't know i found
+i was so in the
+i do i need
+to tell the world
+be in you oh
+for me you are
+me by me baby
+i can be no
+i could not be
+i could leave him
+i could have it
+i could take it
+night of my life
+my life is mine
+i can have the
+i was fallen by
+or you be my
+in my mind with
+i got so all
+i do for you
+like a sign to
+you i feel to
+you never i could
+you you know i'm
+me do i know
+you do that i
+my love you is
+a love i do
+get you in my
+my prey that i'm
+and you do me
+my love is mine
+my
+
+(172 tokens generated)
+
+============================================================

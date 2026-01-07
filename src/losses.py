@@ -218,9 +218,11 @@ class StructureAwareLoss(nn.Module):
         late_penalty = eos_pressure * (1 - p_eos)
 
         # HARD penalty for early EOS (before min_song_length)
-        # Strongly discourage ending the song too early
+        # Using EXPONENTIAL penalty with 100x multiplier
         too_short = (positions < self.min_song_length).float()
-        early_eos_penalty = too_short * p_eos * 5.0  # Strong penalty for early EOS
+        # Exponential: penalty grows exponentially as we get further from min length
+        distance_from_min = (self.min_song_length - positions).clamp(min=0) / 10.0  # Scale down for exp
+        early_eos_penalty = too_short * p_eos * 100.0 * torch.exp(distance_from_min)  # 100x with exp
 
         # Combined penalty
         penalty = late_penalty + early_eos_penalty

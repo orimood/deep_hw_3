@@ -326,3 +326,79 @@ def get_test_dataset(train_dataset: LyricsDataset) -> LyricsDataset:
         is_train=False,
         use_cache=True
     )
+
+
+def get_curriculum_dataloaders(
+    batch_size: int = config.BATCH_SIZE,
+    val_split: float = config.VALIDATION_SPLIT,
+    min_words: int = 100,
+    use_cache: bool = True
+) -> Tuple[DataLoader, DataLoader, LyricsDataset]:
+    """
+    Create dataloaders filtered for longer sequences (curriculum learning).
+
+    Pre-training on longer songs first teaches the model to produce
+    longer outputs before seeing shorter examples.
+
+    Args:
+        batch_size: Batch size
+        val_split: Validation split ratio
+        min_words: Minimum words per song to include
+        use_cache: Whether to use cached data
+
+    Returns:
+        train_loader: Training DataLoader (filtered for long songs)
+        val_loader: Validation DataLoader (filtered for long songs)
+        full_dataset: Full training dataset (for vocab, embeddings)
+    """
+    # Create full training dataset
+    full_dataset = LyricsDataset(
+        csv_path=config.TRAIN_CSV,
+        midi_dir=config.MIDI_DIR,
+        is_train=True,
+        use_cache=use_cache
+    )
+
+    # Filter indices for songs with >= min_words
+    long_indices = []
+    for idx in range(len(full_dataset)):
+        lyrics = full_dataset.data.iloc[idx]['lyrics']
+        word_count = len(str(lyrics).split())
+        if word_count >= min_words:
+            long_indices.append(idx)
+
+    print(f"Curriculum learning: {len(long_indices)}/{len(full_dataset)} songs have >= {min_words} words")
+
+    # Create subset with only long songs
+    long_subset = torch.utils.data.Subset(full_dataset, long_indices)
+
+    # Split into train and validation
+    total_size = len(long_subset)
+    val_size = max(1, int(total_size * val_split))
+    train_size = total_size - val_size
+
+    train_subset, val_subset = torch.utils.data.random_split(
+        long_subset,
+        [train_size, val_size],
+        generator=torch.Generator().manual_seed(config.SEED)
+    )
+
+    print(f"Curriculum train size: {train_size}, Curriculum val size: {val_size}")
+
+    train_loader = DataLoader(
+        train_subset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=collate_fn,
+        num_workers=0
+    )
+
+    val_loader = DataLoader(
+        val_subset,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=collate_fn,
+        num_workers=0
+    )
+
+    return train_loader, val_loader, full_dataset

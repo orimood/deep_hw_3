@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src import config
-from src.dataset import get_dataloaders
+from src.dataset import get_dataloaders, get_curriculum_dataloaders
 from src.model import create_model
 from src.train import train_model
 
@@ -54,6 +54,23 @@ def main():
         action='store_true',
         help='Disable caching of vocab, embeddings, MIDI features'
     )
+    parser.add_argument(
+        '--curriculum',
+        action='store_true',
+        help='Use curriculum learning: pre-train on long songs first, then fine-tune on all'
+    )
+    parser.add_argument(
+        '--min-words',
+        type=int,
+        default=100,
+        help='Minimum words for curriculum pre-training phase (default: 100)'
+    )
+    parser.add_argument(
+        '--pretrain-epochs',
+        type=int,
+        default=25,
+        help='Epochs for curriculum pre-training phase (default: 25)'
+    )
     args = parser.parse_args()
 
     # Print configuration
@@ -64,15 +81,34 @@ def main():
     print(f"Epochs: {args.epochs}")
     print(f"Batch size: {args.batch_size}")
     print(f"Learning rate: {args.lr}")
+    print(f"Curriculum learning: {args.curriculum}")
+    if args.curriculum:
+        print(f"  Min words for pre-training: {args.min_words}")
+        print(f"  Pre-training epochs: {args.pretrain_epochs}")
     print(f"Device: {config.DEVICE}")
     print("=" * 60)
 
     # Load data
     print("\nLoading data...")
-    train_loader, val_loader, train_dataset = get_dataloaders(
-        batch_size=args.batch_size,
-        use_cache=not args.no_cache
-    )
+
+    if args.curriculum:
+        # Phase 1: Get curriculum dataloaders (long songs only)
+        curriculum_train_loader, curriculum_val_loader, full_dataset = get_curriculum_dataloaders(
+            batch_size=args.batch_size,
+            min_words=args.min_words,
+            use_cache=not args.no_cache
+        )
+        # Phase 2: Get full dataloaders
+        train_loader, val_loader, _ = get_dataloaders(
+            batch_size=args.batch_size,
+            use_cache=not args.no_cache
+        )
+        train_dataset = full_dataset
+    else:
+        train_loader, val_loader, train_dataset = get_dataloaders(
+            batch_size=args.batch_size,
+            use_cache=not args.no_cache
+        )
 
     vocab = train_dataset.vocab
     embedding_matrix = train_dataset.embedding_matrix
@@ -102,18 +138,53 @@ def main():
             device=config.DEVICE
         )
 
-        # Train
-        history = train_model(
-            model=model,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            vocab=vocab,
-            device=config.DEVICE,
-            num_epochs=args.epochs,
-            learning_rate=args.lr,
-            model_name=f"lyrics_{approach}",
-            is_attention_model=(approach == 'attention')
-        )
+        if args.curriculum:
+            # PHASE 1: Pre-train on long songs only
+            print("\n" + "-" * 40)
+            print("PHASE 1: Pre-training on long songs")
+            print("-" * 40)
+
+            history = train_model(
+                model=model,
+                train_loader=curriculum_train_loader,
+                val_loader=curriculum_val_loader,
+                vocab=vocab,
+                device=config.DEVICE,
+                num_epochs=args.pretrain_epochs,
+                learning_rate=args.lr,
+                model_name=f"lyrics_{approach}_pretrain",
+                is_attention_model=(approach == 'attention')
+            )
+
+            # PHASE 2: Fine-tune on all data with lower learning rate
+            print("\n" + "-" * 40)
+            print("PHASE 2: Fine-tuning on all data")
+            print("-" * 40)
+
+            history = train_model(
+                model=model,
+                train_loader=train_loader,
+                val_loader=val_loader,
+                vocab=vocab,
+                device=config.DEVICE,
+                num_epochs=args.epochs,
+                learning_rate=args.lr * 0.5,  # Lower LR for fine-tuning
+                model_name=f"lyrics_{approach}",
+                is_attention_model=(approach == 'attention')
+            )
+        else:
+            # Standard training
+            history = train_model(
+                model=model,
+                train_loader=train_loader,
+                val_loader=val_loader,
+                vocab=vocab,
+                device=config.DEVICE,
+                num_epochs=args.epochs,
+                learning_rate=args.lr,
+                model_name=f"lyrics_{approach}",
+                is_attention_model=(approach == 'attention')
+            )
 
         print(f"\n{approach.upper()} model training complete!")
         print(f"Best model saved to: {config.MODELS_DIR / f'lyrics_{approach}_best.pt'}")

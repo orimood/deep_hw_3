@@ -48,7 +48,7 @@ MIDI_PIANO_ROLL_FS = 100    # Piano roll sampling frequency
 # =============================================================================
 HIDDEN_DIM = 512            # LSTM hidden units
 NUM_LAYERS = 2              # Number of LSTM layers
-DROPOUT = 0.3               # Dropout rate (FloydHub uses 0.2-0.65)
+DROPOUT = 0.5               # Dropout rate (increased to reduce overfitting)
 BIDIRECTIONAL = False       # Unidirectional for generation
 
 # =============================================================================
@@ -63,7 +63,7 @@ TEACHER_FORCING_RATIO = 0.5 # 50% teacher forcing
 VALIDATION_SPLIT = 0.1      # 10% validation
 
 # Early stopping (from FloydHub pattern)
-EARLY_STOPPING_PATIENCE = 10
+EARLY_STOPPING_PATIENCE = 5  # Reduced to stop earlier when overfitting
 LR_DECAY_FACTOR = 0.5       # Reduce LR by half on plateau
 LR_DECAY_PATIENCE = 5       # Wait 5 epochs before reducing
 
@@ -100,13 +100,13 @@ SPECIAL_TOKENS = [PAD_TOKEN, UNK_TOKEN, SOS_TOKEN, EOS_TOKEN, NEWLINE_TOKEN]
 STRUCTURE_LOSS = {
     'target_line_length': 6.0,      # Median words per line
     'line_length_sigma': 3.5,       # Std dev
-    'lambda_line': 0.5,             # Line length loss weight (was 0.1, 5x increase)
-    'target_song_length': 150.0,    # Target song length (was 235.0)
-    'length_scale': 50.0,           # Sigmoid scale (was 75.0, tighter)
-    'lambda_length': 0.2,           # Length loss weight (was 0.05, 4x increase)
-    'newline_weight': 3.0,          # Boost for NEWLINE token in CE (was 2.0)
+    'lambda_line': 0.3,             # Line length loss weight (reduced for less overfitting)
+    'target_song_length': 120.0,    # Target song length (middle of 100-150 range)
+    'length_scale': 30.0,           # Sigmoid scale (tighter for consistent length)
+    'lambda_length': 0.1,           # Length loss weight (reduced for less overfitting)
+    'newline_weight': 3.0,          # Boost for NEWLINE token in CE
     'min_line_length': 3,           # Minimum words before NEWLINE (hard penalty)
-    'min_song_length': 50,          # Minimum words before EOS (hard penalty)
+    'min_song_length': 80,          # Minimum words before EOS (increased from 50)
 }
 
 # =============================================================================

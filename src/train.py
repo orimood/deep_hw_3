@@ -152,8 +152,8 @@ def train_model(
     config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
     config.RUNS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Setup optimizer and scheduler
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Setup optimizer and scheduler (added weight_decay for L2 regularization)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
 
     # Learning rate scheduler (FloydHub pattern: reduce on plateau)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
