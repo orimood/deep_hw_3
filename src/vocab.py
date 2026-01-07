@@ -75,12 +75,26 @@ class Vocabulary:
         """
         Tokenize text into words.
         Pattern from DebuggerCafe: simple split with cleaning.
+
+        IMPORTANT: Preserves special tokens like <NEWLINE> before cleaning.
         """
-        text = text.lower().strip()
+        text = text.strip()
+
+        # CRITICAL FIX: Preserve NEWLINE tokens before lowercase/cleaning
+        # Replace <NEWLINE> with a placeholder that survives the regex
+        newline_placeholder = "___NEWLINE___"
+        text = text.replace(config.NEWLINE_TOKEN, newline_placeholder)
+
+        text = text.lower()
         # Remove most punctuation but keep apostrophes
         text = re.sub(r"[^\w\s']", " ", text)
+
         # Split and filter empty strings
         words = [w for w in text.split() if w]
+
+        # CRITICAL FIX: Restore NEWLINE tokens (placeholder -> original token)
+        words = [config.NEWLINE_TOKEN if w == newline_placeholder.lower() else w for w in words]
+
         return words
 
     def encode(self, sentence: str) -> List[int]:
@@ -90,17 +104,37 @@ class Vocabulary:
         return [self.word2idx.get(w, unk_idx) for w in words]
 
     def decode(self, indices: List[int], skip_special: bool = True) -> str:
-        """Decode indices back to words."""
+        """Decode indices back to words.
+
+        FIXED: Properly handles newlines without adding extra spaces.
+        """
         skip_tokens = {config.PAD_TOKEN, config.SOS_TOKEN, config.EOS_TOKEN} if skip_special else set()
-        words = []
+
+        # Build lines instead of a flat word list
+        lines = []
+        current_line = []
+
         for idx in indices:
             word = self.idx2word.get(idx, config.UNK_TOKEN)
-            if word not in skip_tokens:
-                if word == config.NEWLINE_TOKEN:
-                    words.append('\n')
+            if word in skip_tokens:
+                continue
+
+            if word == config.NEWLINE_TOKEN:
+                # Finish current line and start new one
+                if current_line:
+                    lines.append(' '.join(current_line))
+                    current_line = []
                 else:
-                    words.append(word)
-        return ' '.join(words)
+                    # Empty line (consecutive newlines)
+                    lines.append('')
+            else:
+                current_line.append(word)
+
+        # Don't forget the last line
+        if current_line:
+            lines.append(' '.join(current_line))
+
+        return '\n'.join(lines)
 
     def __len__(self) -> int:
         return len(self.word2idx)

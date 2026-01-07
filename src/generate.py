@@ -38,6 +38,10 @@ def sample_with_temperature(
     Returns:
         Sampled token index
     """
+    # CRITICAL FIX: Clone logits to avoid in-place mutation
+    # This prevents repetition penalty being applied multiple times
+    logits = logits.clone()
+
     # Apply repetition penalty to specific tokens
     if repetition_penalty_tokens and repetition_penalty > 1.0:
         for token_idx in repetition_penalty_tokens:

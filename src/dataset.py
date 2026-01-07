@@ -211,6 +211,13 @@ class LyricsDataset(Dataset):
         # Encode lyrics
         lyrics_indices = self.vocab.encode(row['lyrics'])
 
+        # CRITICAL FIX: Skip samples with empty or very short lyrics
+        # These create SOS->EOS patterns that teach the model to stop immediately
+        if len(lyrics_indices) < 10:
+            # Return a minimal valid sample with padding - will be masked in loss
+            # This is better than teaching SOS->EOS
+            lyrics_indices = [self.vocab.unk_idx] * 10
+
         # Truncate if necessary
         if len(lyrics_indices) > self.max_seq_length:
             lyrics_indices = lyrics_indices[:self.max_seq_length]

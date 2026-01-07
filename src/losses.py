@@ -126,10 +126,12 @@ class StructureAwareLoss(nn.Module):
         """
         Line length regularization.
 
-        Encourages NEWLINE at appropriate positions:
-        - Penalizes low NEWLINE probability when line is too long
-        - Penalizes high NEWLINE probability when line is too short
-        - HARD penalty for very short lines (< min_line_length)
+        FIXED: Only applies penalties at positions where the TARGET is actually NEWLINE.
+        This avoids conflicting with cross-entropy which wants p_newline high only at NEWLINE targets.
+
+        Strategy:
+        - At positions where target IS NEWLINE: penalize if line_position is too short
+        - At positions where target is NOT NEWLINE but line is very long: encourage NEWLINE
         """
         batch_size, seq_len, _ = logits.shape
         device = logits.device
@@ -141,26 +143,25 @@ class StructureAwareLoss(nn.Module):
         # Compute position in current line for each token
         line_positions = self._compute_line_positions(targets)  # [batch, seq_len]
 
-        # Mask for non-padding positions
+        # Masks
         mask = (targets != self.pad_idx).float()
+        is_newline_target = (targets == self.newline_idx).float()
+        is_not_newline_target = (targets != self.newline_idx).float() * mask
 
-        # Late penalty: encourage NEWLINE when past target length
-        distance_past_target = F.relu(line_positions - self.target_line_length)
-        late_penalty = distance_past_target * (1 - p_newline) / self.line_length_sigma
+        # PENALTY 1: When target IS NEWLINE but line is too short
+        # Cross-entropy already encourages p_newline here, so we ADD penalty for short lines
+        # This discourages the model from predicting NEWLINE when trained on short lines
+        too_short_for_newline = F.relu(self.min_line_length - line_positions)
+        short_line_penalty = is_newline_target * too_short_for_newline * 2.0
 
-        # Early penalty: discourage NEWLINE when line is too short
-        # Using EXPONENTIAL penalty for stronger effect
-        early_positions = F.relu(self.min_line_length - line_positions)
-        early_penalty = (torch.exp(early_positions) - 1) * p_newline * 5.0
+        # PENALTY 2: When target is NOT NEWLINE but line is very long
+        # Here cross-entropy wants p_newline = 0, but we want to encourage it at long lines
+        # This helps the model learn to insert newlines in long segments
+        very_long = F.relu(line_positions - self.target_line_length)
+        long_line_encouragement = is_not_newline_target * very_long * (1 - p_newline) * 0.1
 
-        # HARD penalty for very short lines (< min_line_length words)
-        # Using 100x multiplier with exponential scaling
-        very_short = (line_positions < self.min_line_length).float()
-        shortness_factor = (self.min_line_length - line_positions).clamp(min=0)
-        hard_penalty = very_short * p_newline * 100.0 * (1 + shortness_factor)  # 100x penalty
-
-        # Combined penalty
-        penalty = late_penalty + early_penalty + hard_penalty
+        # Combined penalty (much simpler and doesn't conflict with CE)
+        penalty = short_line_penalty + long_line_encouragement
 
         # Apply mask and compute mean
         loss = (penalty * mask).sum() / (mask.sum() + 1e-8)
@@ -194,8 +195,8 @@ class StructureAwareLoss(nn.Module):
         """
         Song length guidance.
 
-        Uses sigmoid pressure to encourage EOS prediction at appropriate song length.
-        Also penalizes early EOS (before min_song_length).
+        FIXED: Apply penalty at positions where TARGET is EOS to avoid conflicting with CE.
+        Also adds continuous penalty for p_eos before target_song_length.
         """
         batch_size, seq_len, _ = logits.shape
         device = logits.device
@@ -208,24 +209,31 @@ class StructureAwareLoss(nn.Module):
         positions = torch.arange(seq_len, device=device, dtype=torch.float)
         positions = positions.unsqueeze(0).expand(batch_size, -1)
 
-        # Mask for non-padding
+        # Masks
         mask = (targets != self.pad_idx).float()
+        is_eos_target = (targets == self.eos_idx).float()
+        is_not_eos_target = (targets != self.eos_idx).float() * mask
 
-        # Sigmoid pressure: increases after target length
-        eos_pressure = torch.sigmoid((positions - self.target_song_length) / self.length_scale)
+        # PENALTY 1: When target IS EOS but position is too early
+        # Cross-entropy encourages p_eos here, so we PENALIZE if it's before target length
+        # This teaches: "even if training data has short songs, prefer longer"
+        too_early_for_eos = F.relu(self.target_song_length - positions)
+        early_eos_in_target = is_eos_target * too_early_for_eos * 0.5
 
-        # Penalty: high pressure but low EOS probability (encourage EOS after target)
-        late_penalty = eos_pressure * (1 - p_eos)
+        # PENALTY 2: Continuous penalty for p_eos BEFORE we reach min_song_length
+        # At any non-EOS position before min_song_length, penalize p_eos
+        before_min = (positions < self.min_song_length).float()
+        discourage_early_eos = is_not_eos_target * before_min * p_eos * 5.0
 
-        # HARD penalty for early EOS (before min_song_length)
-        # Using EXPONENTIAL penalty with 100x multiplier
-        too_short = (positions < self.min_song_length).float()
-        # Exponential: penalty grows exponentially as we get further from min length
-        distance_from_min = (self.min_song_length - positions).clamp(min=0) / 10.0  # Scale down for exp
-        early_eos_penalty = too_short * p_eos * 100.0 * torch.exp(distance_from_min)  # 100x with exp
+        # PENALTY 3: Gentle penalty for p_eos between min and target length
+        # Fills the "dead zone" - keeps discouraging EOS until target length
+        in_mid_zone = ((positions >= self.min_song_length) & (positions < self.target_song_length)).float()
+        # Linear ramp: penalty decreases as we approach target
+        ramp = (self.target_song_length - positions) / (self.target_song_length - self.min_song_length + 1e-8)
+        mid_zone_penalty = is_not_eos_target * in_mid_zone * p_eos * ramp * 2.0
 
         # Combined penalty
-        penalty = late_penalty + early_eos_penalty
+        penalty = early_eos_in_target + discourage_early_eos + mid_zone_penalty
 
         # Apply mask and compute mean
         loss = (penalty * mask).sum() / (mask.sum() + 1e-8)
