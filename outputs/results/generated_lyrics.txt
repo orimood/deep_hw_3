@@ -1,0 +1,214 @@
+
+============================================================
+Song: the bangles -  eternal flame
+============================================================
+
+--- Approach: GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love all me is to
+you
+a
+you
+
+Start word: 'the'
+----------------------------------------
+the and i a got
+you i the me
+
+Start word: 'i'
+----------------------------------------
+i a out i'm in in you
+
+--- Approach: ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love i the oh now
+it the are
+it's me
+
+Start word: 'the'
+----------------------------------------
+the when time the
+up i out when
+and
+i
+
+Start word: 'i'
+----------------------------------------
+i all baby that i
+when you but come it's
+but
+
+============================================================
+Song: billy joel -  honesty
+============================================================
+
+--- Approach: GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love you the like up like my with
+in
+
+Start word: 'the'
+----------------------------------------
+the have a the
+i i want
+you
+
+Start word: 'i'
+----------------------------------------
+i i'm the got i the and the
+
+--- Approach: ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love don't oh at to
+to the
+down
+
+Start word: 'the'
+----------------------------------------
+the you on the i'm
+the
+the come the in your
+
+Start word: 'i'
+----------------------------------------
+i the have don't
+the
+is the of
+and
+
+============================================================
+Song: cardigans -  lovefool
+============================================================
+
+--- Approach: GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love and you
+all
+oh
+it
+you
+
+Start word: 'the'
+----------------------------------------
+the of it's was
+do
+
+Start word: 'i'
+----------------------------------------
+i the
+i
+do
+
+--- Approach: ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love been
+a we the
+it's the me
+
+Start word: 'the'
+----------------------------------------
+the in a
+is know
+i you
+i i is
+it
+
+Start word: 'i'
+----------------------------------------
+i i have on you in
+and
+in the you my
+
+============================================================
+Song: aqua -  barbie girl
+============================================================
+
+--- Approach: GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love it the oh you love
+it
+
+Start word: 'the'
+----------------------------------------
+the in do out and was i
+
+Start word: 'i'
+----------------------------------------
+i is we is i
+
+--- Approach: ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love if oh a of is and see
+
+Start word: 'the'
+----------------------------------------
+the hi i for to in
+you
+and
+
+Start word: 'i'
+----------------------------------------
+i the you your was in on
+the
+of
+in
+
+============================================================
+Song: blink 182 -  all the small things
+============================================================
+
+--- Approach: GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love like i your the you it
+me
+the
+
+Start word: 'the'
+----------------------------------------
+the do me to was i the
+the
+
+Start word: 'i'
+----------------------------------------
+i is
+to me me i'm
+
+--- Approach: ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love i in i'm a down we
+you
+the
+
+Start word: 'the'
+----------------------------------------
+the i yeah a a to and know
+and
+to a
+the
+you
+
+Start word: 'i'
+----------------------------------------
+i in the my to the the in
+a
+it

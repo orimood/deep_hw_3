@@ -1,0 +1,130 @@
+{
+  "model_name": "global_melody",
+  "metrics": {
+    "diversity": {
+      "distinct_1": 0.23374613003095976,
+      "distinct_2": 0.7923930269413629,
+      "avg_length": 43.06666666666667,
+      "vocab_size": 151
+    },
+    "structure": {
+      "avg_lines": 12.8,
+      "avg_line_length": 3.3645833333333335,
+      "line_length_std": 2.3501763748824374
+    },
+    "num_test_songs": 5,
+    "num_generations": 15
+  },
+  "generated_samples": [
+    {
+      "artist": "the bangles",
+      "song": "eternal flame",
+      "original_lyrics": " close your eyes give me your hand darling <NEWLINE> do you feel my heart beating <NEWLINE> do you understand <NEWLINE> do you feel the same <NEWLINE> am i only dreaming <NEWLINE> is this burning an eternal flame <NEWLINE> i believe it's meant to be darling <NEWLINE> i watch you when you are sleeping <NEWLINE> you belong with me <NEWLINE> do you feel the same <NEWLINE> am i only dreaming <NEWLINE> or is this burning an eternal flame <NEWLINE> say my name sun shines through the rain <NEWLINE> a w...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love you don't know what the is\nit's been no one way\noh no matter before it\nwhen you never know that it's a\nbut that i'm there for\nwe want to know\nthere's a place of\nnever are\ni\nmy\nall\nmy\nlove\nshe\nmy",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the time that we are\nand there for the way\nwe are here\njust that right the way you\nwith the way of the time\ni want to hear and the\nwe need to go away\nso\nthat i'm\nof\nthey",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i could knew you hear\nit's your so to i\nmet to you feel from the sun\nand you do i get like\nand i have don't make it so\n'cause that i always to\ni\nthe love\nto\nmy\nshe\nwith\nlove\nand",
+          "num_tokens": 200
+        }
+      ]
+    },
+    {
+      "artist": "billy joel",
+      "song": "honesty",
+      "original_lyrics": " if you search for tenderness <NEWLINE> it isn't hard to find <NEWLINE> you can have the love you need to live <NEWLINE> but if you look for truthfulness <NEWLINE> you might just as well be blind <NEWLINE> it always seems to be so hard to give <NEWLINE> honesty is such a lonely word <NEWLINE> everyone is so untrue <NEWLINE> honesty is hardly ever heard <NEWLINE> and mostly what i need from you <NEWLINE> i can always find someone <NEWLINE> to say they sympathize <NEWLINE> if i wear my heart out o...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love i found the night\nbut you was not to get my attention\ni'd can stop your mind and and i want to be with my hand\nso i feel too on my sweet heart i don't\nthis night to\nmy voice\na\nmy\nyou\ni",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the a is the way\nthat's in the sun of blue\ni was you have the\ni was like out\nand i used to you\ni would you wait\ni'll\nas i could\ndon't have to be\ni hear my\ni\nof",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i used the night people can be\ni'm a man and a got up and the world\nthat's a love that one she could have some\nso the night in the\nday\nwhen i was a place of\nwe are a\nlaw they\nthe",
+          "num_tokens": 200
+        }
+      ]
+    },
+    {
+      "artist": "cardigans",
+      "song": "lovefool",
+      "original_lyrics": " dear i fear we're facing a problem <NEWLINE> you love me no longer i know <NEWLINE> and maybe there is nothing <NEWLINE> that i can do to make you do <NEWLINE> mama tells me i shouldn't bother <NEWLINE> that i ought to stick to another man <NEWLINE> a man that surely deserves me <NEWLINE> but i think you do! <NEWLINE> so i cry i pray and i beg <NEWLINE> love me love me <NEWLINE> say that you love me <NEWLINE> fool me fool me <NEWLINE> go on and fool me <NEWLINE> love me love me <NEWLINE> preten...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love the life\ni used you feel from me\nall i think goodbye\nyou knew you can't see\nthis time i ever knew\ni know that i am\nyou really can make\nthe all i can\ni would\nlover\nnever\ni know\ni\ni",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the time on the sun is night\nthat the moon is a in sight\nfrom a night of a little\nmy know is a new for in the time\nand i don't get it to talk\nbut i know it's no one\nbut i\nwant to\nmy\nand",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i am at a sad as my name\nthe day of life i love\ni don't never be with my mind\n'cause i have known to talk you feel like to\ni keep your\nthe sky\ni said\ni know\nmy\nwas\ni'm\nring",
+          "num_tokens": 187
+        }
+      ]
+    },
+    {
+      "artist": "aqua",
+      "song": "barbie girl",
+      "original_lyrics": " hiya barbie <NEWLINE> hi ken! <NEWLINE> do you want to go for a ride? <NEWLINE> sure ken <NEWLINE> jump in <NEWLINE> i'm a barbie girl in a barbie world <NEWLINE> life in plastic it's fantastic <NEWLINE> you can brush my hair undress me everywhere <NEWLINE> imagination life is your creation <NEWLINE> come on barbie let's go party! <NEWLINE> i'm a barbie girl in a barbie world <NEWLINE> life in plastic it's fantastic <NEWLINE> you can brush my hair undress me everywhere <NEWLINE> imagination lif...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love is\ngoing to be it\nthough it's no right\nwhat i need it\ndon't try to\nwhen in\nand i think\nand it's gonna\nthat\nstill\nall i needed\nlove\nand i\ni\nis",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the is a eyes\nand then the night\nin you to be\ni wish my love\ni can remember you\nthat's oh\nall my heart will be forever\na\nwords are\nbut we had\ni was\ni\nin\ni'm\na\nper",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i never knew when you\ni know that i could\nbut i wouldn't not i do\ni've gonna hear me tight\nif i need to show\n'cause oh oh yeah\ni just\nfool\nit's better\nis\nnight\nthe\nshe's\nthe man",
+          "num_tokens": 164
+        }
+      ]
+    },
+    {
+      "artist": "blink 182",
+      "song": "all the small things",
+      "original_lyrics": " all the small things <NEWLINE> true care truth brings <NEWLINE> i'll take one lift <NEWLINE> your ride best trip <NEWLINE> always i know <NEWLINE> you'll be at my show <NEWLINE> watching waiting commiserating <NEWLINE> say it ain't so i will not go <NEWLINE> turn the lights off carry me home <NEWLINE> na na na na <NEWLINE> na na na na na na na na na na na <NEWLINE> late night come home <NEWLINE> work sucks i know <NEWLINE> she left me roses by the stairs <NEWLINE> surprises let me know she care...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love what i can't feel\nwhen i am so you\nwe thought you're better when\ni'm what you say\nyou know when that\none i need that\nbut you make me\nif you can't make me\nyou're not\nand you're\nmy mind\ni don't\nstill\ncould be a\ni don't\ngot",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the world\ni can give you all\nin a bottle of the world\nto never never be\njust time i won't\nfor you can't see\nand i ever have\noh\ni knew i\nmy name\nand i\ni can't\nin a\nwas a",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i get enough to be\nno time you're always a\nto make you better for a\nand i feel your way\nand i have not you did say\ni\ni don't believe your\nlove\nyour\non",
+          "num_tokens": 200
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+
+============================================================
+Song: the bangles -  eternal flame
+============================================================
+
+--- GRU_GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love yeah about about the way and a
+the
+a
+
+Start word: 'the'
+----------------------------------------
+the here to always to all my body
+i won't you have that
+the
+me
+
+Start word: 'i'
+----------------------------------------
+i can't can't want to
+you do you
+little
+place
+
+--- GRU_ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love the world
+you say the time
+if
+all
+
+Start word: 'the'
+----------------------------------------
+the crowd
+and
+the world of
+we
+the
+ack
+
+Start word: 'i'
+----------------------------------------
+i met in the lonely and
+i hear the
+man
+
+============================================================
+Song: billy joel -  honesty
+============================================================
+
+--- GRU_GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love
+you feel it to matter
+you
+
+Start word: 'the'
+----------------------------------------
+the time i used for the same way
+and i had a i
+i'd
+
+Start word: 'i'
+----------------------------------------
+i feel
+been love
+i'm i
+been the a man
+the
+
+--- GRU_ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love like a time are the
+now i'm
+little
+
+Start word: 'the'
+----------------------------------------
+the days
+and if you know
+if
+little
+the
+da
+
+Start word: 'i'
+----------------------------------------
+i had it to my
+stand
+my
+i
+her
+
+============================================================
+Song: cardigans -  lovefool
+============================================================
+
+--- GRU_GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love was out
+oh oh for
+blue
+love
+on
+
+Start word: 'the'
+----------------------------------------
+the i would try you you
+do you think i was
+time
+and
+go
+game
+
+Start word: 'i'
+----------------------------------------
+i would get me
+the way you know you want
+i
+the
+
+--- GRU_ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love about i know to
+
+Start word: 'the'
+----------------------------------------
+the time as you're
+it's just that
+the
+
+Start word: 'i'
+----------------------------------------
+i feel to a
+the other
+and
+seen
+man
+
+============================================================
+Song: aqua -  barbie girl
+============================================================
+
+--- GRU_GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love can
+love
+now i am a
+little
+love
+get
+
+Start word: 'the'
+----------------------------------------
+the standing
+intergalactic sherry intergalactic
+and earl don't
+i
+had me
+
+Start word: 'i'
+----------------------------------------
+i
+can love to
+have a
+you say if
+say
+
+--- GRU_ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love is me
+that you know
+your world
+
+Start word: 'the'
+----------------------------------------
+the morning of you see i
+to
+lost
+song
+face
+
+Start word: 'i'
+----------------------------------------
+i just know a i do the
+but now
+see
+
+============================================================
+Song: blink 182 -  all the small things
+============================================================
+
+--- GRU_GLOBAL ---
+
+Start word: 'love'
+----------------------------------------
+love your say
+never never ever
+all a
+us
+a
+
+Start word: 'the'
+----------------------------------------
+the now for the rain
+i are no
+i
+my
+
+Start word: 'i'
+----------------------------------------
+i you can be time
+it does i hear
+i
+
+--- GRU_ATTENTION ---
+
+Start word: 'love'
+----------------------------------------
+love
+you say goodbye the world
+the
+
+Start word: 'the'
+----------------------------------------
+the day
+when we must never
+have
+find
+
+Start word: 'i'
+----------------------------------------
+i don't know
+i i swear
+never
+i'm i

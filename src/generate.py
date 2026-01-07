@@ -1,34 +1,40 @@
-"""Lyrics generation with sampling-based text generation."""
+"""
+Text generation with temperature sampling and top-k filtering.
+
+Pattern from TensorFlow tutorial: use multinomial sampling, NOT argmax.
+This produces more diverse and creative outputs.
+"""
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 from pathlib import Path
 
-from . import config
-from .data_loader import Vocabulary
+import config
+from vocab import Vocabulary
+from model import LyricsLSTMGlobal, LyricsLSTMAttention
 
 
-def sample_next_word(logits: torch.Tensor,
-                     temperature: float = config.TEMPERATURE,
-                     top_k: int = config.TOP_K) -> int:
+def sample_with_temperature(
+    logits: torch.Tensor,
+    temperature: float = config.TEMPERATURE,
+    top_k: int = config.TOP_K
+) -> int:
     """
-    Sample the next word using temperature-scaled softmax and top-k filtering.
+    Sample from logits with temperature scaling and top-k filtering.
 
-    The sampling is NOT deterministic - words are sampled proportionally
-    to their probability, not just picking the argmax.
+    Pattern from TensorFlow tutorial: use multinomial, not argmax.
 
     Args:
-        logits: Logits for vocabulary [vocab_size]
-        temperature: Temperature for softmax (lower = more deterministic)
-        top_k: Number of top candidates to consider
+        logits: Raw logits [vocab_size]
+        temperature: Controls randomness (lower = more deterministic)
+        top_k: Only sample from top k tokens
 
     Returns:
-        Index of sampled word
+        Sampled token index
     """
-    # Apply temperature scaling
+    # Apply temperature
     logits = logits / temperature
 
     # Top-k filtering
@@ -44,291 +50,311 @@ def sample_next_word(logits: torch.Tensor,
     # Convert to probabilities
     probs = F.softmax(logits, dim=-1)
 
-    # Sample from the distribution
-    sampled_idx = torch.multinomial(probs, num_samples=1)
+    # Sample using multinomial (TensorFlow pattern: NOT argmax)
+    sampled_idx = torch.multinomial(probs, num_samples=1).item()
 
-    return sampled_idx.item()
+    return sampled_idx
 
 
-def generate_lyrics(model: nn.Module,
-                    midi_features: torch.Tensor,
-                    midi_temporal: torch.Tensor,
-                    vocab: Vocabulary,
-                    start_word: str,
-                    device: torch.device,
-                    max_length: int = 300,  # Safety limit only - model learns structure
-                    temperature: float = config.TEMPERATURE,
-                    top_k: int = config.TOP_K,
-                    is_attention_model: bool = False) -> str:
+def generate_lyrics_global(
+    model: LyricsLSTMGlobal,
+    vocab: Vocabulary,
+    midi_features: np.ndarray,
+    start_words: List[str],
+    max_length: int = config.MAX_GENERATION_LENGTH,
+    temperature: float = config.TEMPERATURE,
+    top_k: int = config.TOP_K,
+    device: torch.device = config.DEVICE
+) -> Tuple[str, List[str]]:
     """
-    Generate lyrics given MIDI features and a starting word.
-
-    The model learns proper line structure (when to insert <NEWLINE>) through
-    the structure-aware loss function during training. No hardcoded line limits.
+    Generate lyrics using global melody conditioning model.
 
     Args:
-        model: Trained lyrics generation model
-        midi_features: Global MIDI features [1, midi_dim]
-        midi_temporal: Temporal MIDI features [1, num_frames, frame_dim]
+        model: Trained LyricsLSTMGlobal model
         vocab: Vocabulary object
-        start_word: Starting word for generation
-        device: Device to run on
-        max_length: Safety limit for maximum words (model learns actual length)
+        midi_features: Global MIDI features [midi_dim]
+        start_words: List of starting words
+        max_length: Maximum tokens to generate
         temperature: Sampling temperature
-        top_k: Top-k sampling parameter
-        is_attention_model: Whether model uses attention
+        top_k: Top-k filtering parameter
+        device: Device to run on
 
     Returns:
-        Generated lyrics as a string
+        generated_text: Full generated lyrics string
+        token_list: List of generated tokens
     """
     model.eval()
 
-    # Special token indices
-    sos_idx = vocab.word2idx[config.SOS_TOKEN]
-    eos_idx = vocab.word2idx[config.EOS_TOKEN]
-    newline_idx = vocab.word2idx[config.NEWLINE_TOKEN]
-    unk_idx = vocab.word2idx[config.UNK_TOKEN]
-
-    # Get start word index
-    start_word_lower = start_word.lower().strip()
-    if start_word_lower in vocab.word2idx:
-        start_idx = vocab.word2idx[start_word_lower]
-    else:
-        print(f"Warning: '{start_word}' not in vocabulary, using <UNK>")
-        start_idx = unk_idx
-
     # Prepare MIDI features
-    midi_features = midi_features.to(device)
-    midi_temporal = midi_temporal.to(device)
+    midi_tensor = torch.tensor(midi_features, dtype=torch.float32).unsqueeze(0).to(device)
 
-    # Select appropriate MIDI input based on model type
-    if is_attention_model:
-        midi_input = midi_temporal
-    else:
-        midi_input = midi_features
+    # Encode starting words
+    tokens = [vocab.sos_idx]
+    for word in start_words:
+        word_lower = word.lower()
+        if word_lower in vocab.word2idx:
+            tokens.append(vocab.word2idx[word_lower])
+        else:
+            tokens.append(vocab.unk_idx)
 
-    # Initialize generation
-    generated_words = [start_word_lower]
-    current_word = torch.tensor([[start_idx]], device=device)
+    generated_tokens = list(start_words)
     hidden = None
 
     with torch.no_grad():
-        for _ in range(max_length - 1):
-            # Forward pass
-            if is_attention_model:
-                output, hidden, _ = model(current_word, midi_input, hidden)
-            else:
-                output, hidden = model(current_word, midi_input, hidden)
+        # Process start sequence to get initial hidden state
+        input_tensor = torch.tensor(tokens, dtype=torch.long).unsqueeze(0).to(device)
+        outputs, hidden = model(input_tensor, midi_tensor, hidden)
 
-            # Get logits for next word
-            logits = output[0, -1, :]  # [vocab_size]
+        # Get logits for last position
+        logits = outputs[0, -1, :]
 
-            # Sample next word
-            next_idx = sample_next_word(logits, temperature, top_k)
+        # Generate tokens one by one
+        for _ in range(max_length - len(start_words)):
+            # Sample next token
+            next_idx = sample_with_temperature(logits, temperature, top_k)
 
-            # Check for end token
-            if next_idx == eos_idx:
+            # Check for EOS
+            if next_idx == vocab.eos_idx:
                 break
 
-            # Get the word
+            # Convert to word and add to generated
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
-
-            # Handle line breaks - model learns when to insert <NEWLINE> through training
-            if word == config.NEWLINE_TOKEN or word.lower() == 'newline':
-                generated_words.append('\n')
-            else:
-                generated_words.append(word)
-
-            # No hardcoded line length limit - model learns structure through loss function
+            generated_tokens.append(word)
 
             # Prepare next input
-            current_word = torch.tensor([[next_idx]], device=device)
+            next_input = torch.tensor([[next_idx]], dtype=torch.long).to(device)
 
-    # Format output
-    lyrics = format_lyrics(generated_words)
+            # Forward pass for single token
+            outputs, hidden = model(next_input, midi_tensor, hidden)
+            logits = outputs[0, -1, :]
 
-    return lyrics
+    # Format output with proper newlines
+    text = _format_lyrics(generated_tokens)
+
+    return text, generated_tokens
 
 
-def format_lyrics(words: List[str]) -> str:
+def generate_lyrics_attention(
+    model: LyricsLSTMAttention,
+    vocab: Vocabulary,
+    midi_temporal: np.ndarray,
+    start_words: List[str],
+    max_length: int = config.MAX_GENERATION_LENGTH,
+    temperature: float = config.TEMPERATURE,
+    top_k: int = config.TOP_K,
+    device: torch.device = config.DEVICE
+) -> Tuple[str, List[str], torch.Tensor]:
     """
-    Format the generated words into proper lyrics format.
+    Generate lyrics using attention-based melody conditioning model.
 
     Args:
-        words: List of generated words
+        model: Trained LyricsLSTMAttention model
+        vocab: Vocabulary object
+        midi_temporal: Temporal MIDI features [num_frames, frame_dim]
+        start_words: List of starting words
+        max_length: Maximum tokens to generate
+        temperature: Sampling temperature
+        top_k: Top-k filtering parameter
+        device: Device to run on
 
     Returns:
-        Formatted lyrics string
+        generated_text: Full generated lyrics string
+        token_list: List of generated tokens
+        attention_weights: Attention weights for visualization [seq_len, num_frames]
+    """
+    model.eval()
+
+    # Prepare MIDI features
+    midi_tensor = torch.tensor(midi_temporal, dtype=torch.float32).unsqueeze(0).to(device)
+
+    # Encode starting words
+    tokens = [vocab.sos_idx]
+    for word in start_words:
+        word_lower = word.lower()
+        if word_lower in vocab.word2idx:
+            tokens.append(vocab.word2idx[word_lower])
+        else:
+            tokens.append(vocab.unk_idx)
+
+    generated_tokens = list(start_words)
+    all_attention_weights = []
+    hidden = None
+
+    with torch.no_grad():
+        # Process start sequence to get initial hidden state
+        input_tensor = torch.tensor(tokens, dtype=torch.long).unsqueeze(0).to(device)
+        outputs, hidden, attn_weights = model(input_tensor, midi_tensor, hidden)
+
+        # Store attention weights for start sequence
+        all_attention_weights.append(attn_weights[0])  # [seq_len, num_frames]
+
+        # Get logits for last position
+        logits = outputs[0, -1, :]
+
+        # Generate tokens one by one
+        for _ in range(max_length - len(start_words)):
+            # Sample next token
+            next_idx = sample_with_temperature(logits, temperature, top_k)
+
+            # Check for EOS
+            if next_idx == vocab.eos_idx:
+                break
+
+            # Convert to word and add to generated
+            word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
+            generated_tokens.append(word)
+
+            # Prepare next input
+            next_input = torch.tensor([[next_idx]], dtype=torch.long).to(device)
+
+            # Forward pass for single token
+            outputs, hidden, attn_weights = model(next_input, midi_tensor, hidden)
+            all_attention_weights.append(attn_weights[0])  # [1, num_frames]
+            logits = outputs[0, -1, :]
+
+    # Stack attention weights
+    attention_weights = torch.cat(all_attention_weights, dim=0)  # [total_len, num_frames]
+
+    # Format output with proper newlines
+    text = _format_lyrics(generated_tokens)
+
+    return text, generated_tokens, attention_weights
+
+
+def _format_lyrics(tokens: List[str]) -> str:
+    """
+    Format token list into proper lyrics string.
+    Replaces NEWLINE tokens with actual newlines.
     """
     lines = []
     current_line = []
 
-    for word in words:
-        if word == '\n' or word.lower() == 'newline':
+    for token in tokens:
+        # Check for newline token (handle various formats)
+        token_lower = token.lower().strip()
+        if token == config.NEWLINE_TOKEN or token_lower == '<newline>' or token_lower == 'newline':
             if current_line:
                 lines.append(' '.join(current_line))
                 current_line = []
-        elif word not in [config.PAD_TOKEN, config.UNK_TOKEN,
-                          config.SOS_TOKEN, config.EOS_TOKEN, config.NEWLINE_TOKEN]:
-            current_line.append(word)
+        else:
+            current_line.append(token)
 
-    # Add any remaining words
+    # Add final line
     if current_line:
         lines.append(' '.join(current_line))
 
     return '\n'.join(lines)
 
 
-def generate_multiple_lyrics(model: nn.Module,
-                             midi_features: torch.Tensor,
-                             midi_temporal: torch.Tensor,
-                             vocab: Vocabulary,
-                             start_words: List[str],
-                             device: torch.device,
-                             is_attention_model: bool = False,
-                             **kwargs) -> dict:
+def generate_multiple_samples(
+    model,
+    vocab: Vocabulary,
+    midi_features,
+    start_words: List[str],
+    num_samples: int = 3,
+    is_attention_model: bool = False,
+    temperatures: List[float] = None,
+    **kwargs
+) -> List[Tuple[str, float]]:
     """
-    Generate multiple sets of lyrics with different starting words.
+    Generate multiple samples with different temperatures.
 
     Args:
         model: Trained model
-        midi_features: Global MIDI features
-        midi_temporal: Temporal MIDI features
         vocab: Vocabulary
-        start_words: List of starting words
-        device: Device to run on
+        midi_features: MIDI features (global or temporal depending on model)
+        start_words: Starting words
+        num_samples: Number of samples to generate
         is_attention_model: Whether model uses attention
-        **kwargs: Additional arguments for generate_lyrics
+        temperatures: List of temperatures to use (defaults to varying around config value)
 
     Returns:
-        Dictionary mapping start words to generated lyrics
+        List of (generated_text, temperature) tuples
     """
-    results = {}
+    if temperatures is None:
+        # Generate with varying temperatures
+        base_temp = config.TEMPERATURE
+        temperatures = [base_temp * 0.8, base_temp, base_temp * 1.2][:num_samples]
 
-    for start_word in start_words:
-        print(f"Generating lyrics with start word: '{start_word}'")
-        lyrics = generate_lyrics(
-            model=model,
-            midi_features=midi_features,
-            midi_temporal=midi_temporal,
-            vocab=vocab,
-            start_word=start_word,
-            device=device,
-            is_attention_model=is_attention_model,
-            **kwargs
-        )
-        results[start_word] = lyrics
+    samples = []
 
-    return results
+    for temp in temperatures:
+        if is_attention_model:
+            text, _, _ = generate_lyrics_attention(
+                model, vocab, midi_features, start_words,
+                temperature=temp, **kwargs
+            )
+        else:
+            text, _ = generate_lyrics_global(
+                model, vocab, midi_features, start_words,
+                temperature=temp, **kwargs
+            )
+
+        samples.append((text, temp))
+
+    return samples
 
 
-def evaluate_test_set(global_model: nn.Module,
-                      attention_model: nn.Module,
-                      test_dataset,
-                      vocab: Vocabulary,
-                      device: torch.device,
-                      start_words: List[str] = None,
-                      output_dir: str = None) -> dict:
+def batch_generate_for_test(
+    model,
+    vocab: Vocabulary,
+    midi_features_dict: dict,
+    song_keys: List[str],
+    start_words_list: List[List[str]] = None,
+    is_attention_model: bool = False,
+    device: torch.device = config.DEVICE
+) -> dict:
     """
-    Evaluate both models on the test set.
+    Generate lyrics for test set evaluation.
 
-    Generates lyrics for each test melody with both approaches
-    and multiple starting words.
+    Assignment requirement: 3 different starting words for each melody.
 
     Args:
-        global_model: Model with global melody conditioning
-        attention_model: Model with attention
-        test_dataset: Test dataset
+        model: Trained model
         vocab: Vocabulary
+        midi_features_dict: Dict mapping song_key to MIDI features
+        song_keys: List of song keys to generate for
+        start_words_list: List of starting word lists (default: config.TEST_START_WORDS)
+        is_attention_model: Whether model uses attention
         device: Device to run on
-        start_words: List of starting words (default: ["love", "the", "i"])
-        output_dir: Directory to save results
 
     Returns:
-        Dictionary with all generated lyrics
+        Dict mapping song_key to list of generated lyrics
     """
-    if start_words is None:
-        start_words = ["love", "the", "i"]
+    if start_words_list is None:
+        # Default: 3 different starting words as per assignment
+        start_words_list = [[word] for word in config.TEST_START_WORDS]
 
-    if output_dir is None:
-        output_dir = config.OUTPUTS_DIR
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    results = {}
 
-    all_results = {}
+    for song_key in song_keys:
+        midi_features = midi_features_dict.get(song_key)
+        if midi_features is None:
+            continue
 
-    for idx in range(len(test_dataset)):
-        # Get test sample (now includes both global and temporal MIDI features)
-        inputs, targets, midi_features, midi_temporal, length = test_dataset[idx]
-        midi_features = midi_features.unsqueeze(0)  # Add batch dimension
-        midi_temporal = midi_temporal.unsqueeze(0)  # Add batch dimension
+        song_results = []
 
-        # Get song info
-        song_info = test_dataset.data.iloc[idx]
-        song_name = f"{song_info['artist']} - {song_info['song']}"
+        for start_words in start_words_list:
+            if is_attention_model:
+                text, tokens, attn = generate_lyrics_attention(
+                    model, vocab, midi_features, start_words, device=device
+                )
+                song_results.append({
+                    'start_words': start_words,
+                    'generated_text': text,
+                    'tokens': tokens,
+                    'attention_weights': attn.cpu().numpy()
+                })
+            else:
+                text, tokens = generate_lyrics_global(
+                    model, vocab, midi_features, start_words, device=device
+                )
+                song_results.append({
+                    'start_words': start_words,
+                    'generated_text': text,
+                    'tokens': tokens
+                })
 
-        print(f"\n{'='*60}")
-        print(f"Test Song {idx + 1}: {song_name}")
-        print('='*60)
+        results[song_key] = song_results
 
-        all_results[song_name] = {}
-
-        # Generate with global model
-        print("\n--- Approach 1: Global Melody Conditioning ---")
-        global_results = generate_multiple_lyrics(
-            model=global_model,
-            midi_features=midi_features,
-            midi_temporal=midi_temporal,
-            vocab=vocab,
-            start_words=start_words,
-            device=device,
-            is_attention_model=False
-        )
-        all_results[song_name]['global'] = global_results
-
-        for start_word, lyrics in global_results.items():
-            print(f"\nStart word: '{start_word}'")
-            print("-" * 40)
-            print(lyrics)
-
-        # Generate with attention model
-        print("\n--- Approach 2: Attention over Melody ---")
-        attention_results = generate_multiple_lyrics(
-            model=attention_model,
-            midi_features=midi_features,
-            midi_temporal=midi_temporal,
-            vocab=vocab,
-            start_words=start_words,
-            device=device,
-            is_attention_model=True
-        )
-        all_results[song_name]['attention'] = attention_results
-
-        for start_word, lyrics in attention_results.items():
-            print(f"\nStart word: '{start_word}'")
-            print("-" * 40)
-            print(lyrics)
-
-    # Save results to file
-    save_results(all_results, output_dir / "generated_lyrics.txt")
-
-    return all_results
-
-
-def save_results(results: dict, output_path: Path):
-    """Save generated lyrics to a text file."""
-    with open(output_path, 'w') as f:
-        for song_name, approaches in results.items():
-            f.write(f"\n{'='*60}\n")
-            f.write(f"Song: {song_name}\n")
-            f.write('='*60 + '\n')
-
-            for approach, lyrics_dict in approaches.items():
-                f.write(f"\n--- Approach: {approach.upper()} ---\n")
-
-                for start_word, lyrics in lyrics_dict.items():
-                    f.write(f"\nStart word: '{start_word}'\n")
-                    f.write("-" * 40 + '\n')
-                    f.write(lyrics + '\n')
-
-    print(f"\nResults saved to {output_path}")
+    return results

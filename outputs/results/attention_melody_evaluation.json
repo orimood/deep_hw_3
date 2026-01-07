@@ -1,0 +1,130 @@
+{
+  "model_name": "attention_melody",
+  "metrics": {
+    "diversity": {
+      "distinct_1": 0.2338935574229692,
+      "distinct_2": 0.7825464949928469,
+      "avg_length": 47.6,
+      "vocab_size": 167
+    },
+    "structure": {
+      "avg_lines": 13.133333333333333,
+      "avg_line_length": 3.6243654822335025,
+      "line_length_std": 2.4703347002779514
+    },
+    "num_test_songs": 5,
+    "num_generations": 15
+  },
+  "generated_samples": [
+    {
+      "artist": "the bangles",
+      "song": "eternal flame",
+      "original_lyrics": " close your eyes give me your hand darling <NEWLINE> do you feel my heart beating <NEWLINE> do you understand <NEWLINE> do you feel the same <NEWLINE> am i only dreaming <NEWLINE> is this burning an eternal flame <NEWLINE> i believe it's meant to be darling <NEWLINE> i watch you when you are sleeping <NEWLINE> you belong with me <NEWLINE> do you feel the same <NEWLINE> am i only dreaming <NEWLINE> or is this burning an eternal flame <NEWLINE> say my name sun shines through the rain <NEWLINE> a w...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love you can do to say\nif we do you said me\nand i love you\ni believe i'd you\nbaby i feel\nlove\nand i see you\ni want\nyour feet\nit's all\ni would do\nand i say for\nbut i\nhe",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the the the night was the world\nin the fog of blue\nof a endless in to\nclimbing down the a street\ni'm a new world of my head\nand i can't find the world of you\ni hear your name it's mine\ni believe where we feel\nand i would reach\nyou\nis\nall\ngot\nwe",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i fought when\ni was weak a i have known\nyou stood out and the air\nyou could be for your world\n'cause i need to know\nit's got to be me\ni'll got me a\nlove\nwhen my are\ni know\nin a life\nyou're\nthat\ngirl\nlove\ni",
+          "num_tokens": 200
+        }
+      ]
+    },
+    {
+      "artist": "billy joel",
+      "song": "honesty",
+      "original_lyrics": " if you search for tenderness <NEWLINE> it isn't hard to find <NEWLINE> you can have the love you need to live <NEWLINE> but if you look for truthfulness <NEWLINE> you might just as well be blind <NEWLINE> it always seems to be so hard to give <NEWLINE> honesty is such a lonely word <NEWLINE> everyone is so untrue <NEWLINE> honesty is hardly ever heard <NEWLINE> and mostly what i need from you <NEWLINE> i can always find someone <NEWLINE> to say they sympathize <NEWLINE> if i wear my heart out o...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love about long is gone on me\nhow can to feel you baby that did me\ni thought you\n'cause i don't know that when you\nin\nno one that i ever needed to be\ni'm\none the day\ni don't\nworld\nlove",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the meaning your eyes has be\nit's a good bit\nwe never know that you will be with you\nand now i love where you say\nwhat i got to be a place of me\nand i'm not the life i would be my arms\nwhen i\nmy lonely\ni'm\nplace\nworld\nyou",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i was love in the night of stone\ni know that i was knew i found about\ni don't want to take you\nand i will do\ni believe that i do\ni've be a place\nis my heart\n'cause my heart\nmy love is\nmy mind\ni\ni",
+          "num_tokens": 200
+        }
+      ]
+    },
+    {
+      "artist": "cardigans",
+      "song": "lovefool",
+      "original_lyrics": " dear i fear we're facing a problem <NEWLINE> you love me no longer i know <NEWLINE> and maybe there is nothing <NEWLINE> that i can do to make you do <NEWLINE> mama tells me i shouldn't bother <NEWLINE> that i ought to stick to another man <NEWLINE> a man that surely deserves me <NEWLINE> but i think you do! <NEWLINE> so i cry i pray and i beg <NEWLINE> love me love me <NEWLINE> say that you love me <NEWLINE> fool me fool me <NEWLINE> go on and fool me <NEWLINE> love me love me <NEWLINE> preten...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love this night of the life of time\nit's that one of a life is just\nsince you are on the\ni got some long you said my heart\nyou can understand\nthis the time\nall they feel what\nit's\nnice girl\never could me\nit's\nbut\ni",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the love is in the pouring\noh when you have i see\nno one time to be\nbut a days will me know\nthen you really\nand there is i never needed to be\nthere i am\ni\ni just\ni'm your head\nwhen\nlove\nwe\ni'm",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i see a longest of the wheel\nand i was the magic\ni swear the shadow i see\nand i see the time i found\ni was my way\nand i just was loved\njust no\never i had\nand i'm i'm your heart\nso we're\ngone\nto",
+          "num_tokens": 200
+        }
+      ]
+    },
+    {
+      "artist": "aqua",
+      "song": "barbie girl",
+      "original_lyrics": " hiya barbie <NEWLINE> hi ken! <NEWLINE> do you want to go for a ride? <NEWLINE> sure ken <NEWLINE> jump in <NEWLINE> i'm a barbie girl in a barbie world <NEWLINE> life in plastic it's fantastic <NEWLINE> you can brush my hair undress me everywhere <NEWLINE> imagination life is your creation <NEWLINE> come on barbie let's go party! <NEWLINE> i'm a barbie girl in a barbie world <NEWLINE> life in plastic it's fantastic <NEWLINE> you can brush my hair undress me everywhere <NEWLINE> imagination lif...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love about me that i've break\nif you don't know what that i knew\nbaby if i know\nand love\noh so it\ni love about\nand\nlove\ni'm\ni feel a\nso i don't see what\nlove\nwho\nstill",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the night i used turn\nbut i see you can't love\nand the world\nno is no way to always\nhe would say\ntime are\nand all here is waiting to me\ni'll play now you\nif i found your\nwhen\ndays\ni\nmy eyes yeah my soul\ni\nmore",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i need to be\nso i want to be this right the my face\nthe times is i need\ni don't need to the radio\ni saw the chance you and\ni am lost here\nwhen i was love that\nthis\ntwo one\nmy\ni\ni don't stop\nmy",
+          "num_tokens": 197
+        }
+      ]
+    },
+    {
+      "artist": "blink 182",
+      "song": "all the small things",
+      "original_lyrics": " all the small things <NEWLINE> true care truth brings <NEWLINE> i'll take one lift <NEWLINE> your ride best trip <NEWLINE> always i know <NEWLINE> you'll be at my show <NEWLINE> watching waiting commiserating <NEWLINE> say it ain't so i will not go <NEWLINE> turn the lights off carry me home <NEWLINE> na na na na <NEWLINE> na na na na na na na na na na na <NEWLINE> late night come home <NEWLINE> work sucks i know <NEWLINE> she left me roses by the stairs <NEWLINE> surprises let me know she care...",
+      "generations": [
+        {
+          "start_word": "love",
+          "generated_text": "love you ain't like a heartache of day the day\nthis day that many will go\nand don't stop your fantasy\nthat it's lost so in the\nfor no one that you know\nthey know that now we can be no\nfor the\nyork\nyou\non\nthe\nthe",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "the",
+          "generated_text": "the boy\ni was a bein'\nso you needed it to find me\ni love you\nso we're all you know\nand you are what\ni was the love i will to say\njust i could\ni just\nyour face again\nand i believe\nof",
+          "num_tokens": 200
+        },
+        {
+          "start_word": "i",
+          "generated_text": "i think this love\ni need to say you feel me\nthe way of my love\ni can't know it if i care you\ni was lost you to stay\ni'm\nof my side\nthat's the\nof mine\nme\nand\na no\nnew",
+          "num_tokens": 200
+        }
+      ]
+    }
+  ]
+}

@@ -1,32 +1,31 @@
-"""Structure-aware loss functions for lyrics generation.
+"""
+Structure-aware loss functions for lyrics generation.
 
-This module provides loss functions that teach the model proper lyric structure
-through training, rather than relying on hardcoded rules during generation.
-
-Components:
-1. Cross-entropy loss with boosted weight for <NEWLINE> token
-2. Line length regularization (encourages appropriate line breaks)
-3. Total length guidance (encourages appropriate song length)
+Teaches the model proper lyric structure through training:
+1. Cross-entropy with boosted NEWLINE weight
+2. Line length regularization
+3. Song length guidance
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict
 
-from . import config
+import config
+from vocab import Vocabulary
 
 
 class StructureAwareLoss(nn.Module):
     """
-    Multi-component loss function that teaches lyric structure through training.
+    Multi-component loss function for lyrics generation.
 
     L_total = L_ce + λ_line * L_line + λ_length * L_length
 
     Components:
-    1. Cross-entropy loss (primary task) with boosted <NEWLINE> weight
-    2. Line length regularization - penalizes missing/premature newlines
-    3. Total length guidance - sigmoid pressure for appropriate song length
+    1. Weighted Cross-Entropy: Standard CE with boosted NEWLINE token weight
+    2. Line Length Regularization: Penalizes too-short or too-long lines
+    3. Song Length Guidance: Sigmoid pressure to encourage appropriate length
     """
 
     def __init__(
@@ -35,16 +34,13 @@ class StructureAwareLoss(nn.Module):
         pad_idx: int,
         newline_idx: int,
         eos_idx: int,
-        # Line length parameters (from training data: median=6, std=3.7)
-        target_line_length: float = 6.0,
-        line_length_sigma: float = 3.5,
-        lambda_line: float = 0.1,
-        # Total length parameters (from training data: median=235, std=146)
-        target_song_length: float = 235.0,
-        length_scale: float = 75.0,
-        lambda_length: float = 0.05,
-        # Newline weighting
-        newline_weight: float = 2.0,
+        target_line_length: float = config.STRUCTURE_LOSS['target_line_length'],
+        line_length_sigma: float = config.STRUCTURE_LOSS['line_length_sigma'],
+        lambda_line: float = config.STRUCTURE_LOSS['lambda_line'],
+        target_song_length: float = config.STRUCTURE_LOSS['target_song_length'],
+        length_scale: float = config.STRUCTURE_LOSS['length_scale'],
+        lambda_length: float = config.STRUCTURE_LOSS['lambda_length'],
+        newline_weight: float = config.STRUCTURE_LOSS['newline_weight']
     ):
         super().__init__()
 
@@ -58,15 +54,12 @@ class StructureAwareLoss(nn.Module):
         self.line_length_sigma = line_length_sigma
         self.lambda_line = lambda_line
 
-        # Total length parameters
+        # Song length parameters
         self.target_song_length = target_song_length
         self.length_scale = length_scale
         self.lambda_length = lambda_length
 
-        # Newline weighting
-        self.newline_weight = newline_weight
-
-        # Create class weights for cross-entropy
+        # Create class weights for CE loss
         weights = torch.ones(vocab_size)
         weights[newline_idx] = newline_weight
         self.register_buffer('class_weights', weights)
@@ -78,20 +71,20 @@ class StructureAwareLoss(nn.Module):
         return_components: bool = False
     ) -> torch.Tensor:
         """
-        Compute the structure-aware loss.
+        Compute structure-aware loss.
 
         Args:
-            logits: Model output logits [batch, seq_len, vocab_size]
-            targets: Target token indices [batch, seq_len]
-            return_components: If True, return individual loss components
+            logits: Model output [batch, seq_len, vocab_size]
+            targets: Target indices [batch, seq_len]
+            return_components: If True, also return loss breakdown
 
         Returns:
-            Total loss (and optionally a dict of loss components)
+            Total loss (optionally with component breakdown)
         """
         batch_size, seq_len, vocab_size = logits.shape
         device = logits.device
 
-        # Move weights to device if needed
+        # Ensure weights are on correct device
         weights = self.class_weights.to(device)
 
         # 1. Weighted Cross-Entropy Loss
@@ -109,63 +102,52 @@ class StructureAwareLoss(nn.Module):
         # 2. Line Length Regularization
         line_loss = self._compute_line_length_loss(logits, targets)
 
-        # 3. Total Length Guidance
+        # 3. Song Length Guidance
         length_loss = self._compute_length_guidance_loss(logits, targets)
 
         # Combine losses
-        total_loss = (
-            ce_loss +
-            self.lambda_line * line_loss +
-            self.lambda_length * length_loss
-        )
+        total_loss = ce_loss + self.lambda_line * line_loss + self.lambda_length * length_loss
 
         if return_components:
-            components = {
+            return total_loss, {
                 'ce_loss': ce_loss.item(),
                 'line_loss': line_loss.item(),
                 'length_loss': length_loss.item(),
                 'total_loss': total_loss.item()
             }
-            return total_loss, components
 
         return total_loss
 
-    def _compute_line_length_loss(
-        self,
-        logits: torch.Tensor,
-        targets: torch.Tensor
-    ) -> torch.Tensor:
+    def _compute_line_length_loss(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
-        Compute line length regularization loss.
+        Line length regularization.
 
-        Encourages model to predict <NEWLINE> at appropriate positions:
-        - Penalizes low <NEWLINE> probability when line is getting long (>target)
-        - Penalizes high <NEWLINE> probability when line is too short (<3 words)
+        Encourages NEWLINE at appropriate positions:
+        - Penalizes low NEWLINE probability when line is too long
+        - Penalizes high NEWLINE probability when line is too short
         """
-        batch_size, seq_len, vocab_size = logits.shape
+        batch_size, seq_len, _ = logits.shape
         device = logits.device
 
-        # Get softmax probabilities for newline token
+        # Get NEWLINE probabilities
         probs = F.softmax(logits, dim=-1)
         p_newline = probs[:, :, self.newline_idx]  # [batch, seq_len]
 
-        # Build position-in-line tensor
+        # Compute position in current line for each token
         line_positions = self._compute_line_positions(targets)  # [batch, seq_len]
 
-        # Create mask for non-padding positions
+        # Mask for non-padding positions
         mask = (targets != self.pad_idx).float()
 
-        # For positions past the target line length, penalize low newline probability
-        # The further past target, the higher the penalty
+        # Late penalty: encourage NEWLINE when past target length
         distance_past_target = F.relu(line_positions - self.target_line_length)
         late_penalty = distance_past_target * (1 - p_newline) / self.line_length_sigma
 
-        # For very early positions (<4 words), penalize high newline probability
-        # Quadratic penalty to strongly discourage short lines
+        # Early penalty: discourage NEWLINE when line is too short (<4 words)
         early_positions = F.relu(4 - line_positions)
         early_penalty = (early_positions ** 2) * p_newline
 
-        # Combine penalties
+        # Combined penalty
         penalty = late_penalty + early_penalty
 
         # Apply mask and compute mean
@@ -177,8 +159,7 @@ class StructureAwareLoss(nn.Module):
         """
         Compute position within line for each token.
 
-        Returns tensor where each position contains the count of words
-        since the last <NEWLINE> token (or start of sequence).
+        Returns count of words since last NEWLINE (or start of sequence).
         """
         batch_size, seq_len = targets.shape
         device = targets.device
@@ -194,39 +175,31 @@ class StructureAwareLoss(nn.Module):
                 elif targets[b, t] != self.pad_idx:
                     count += 1
                     positions[b, t] = count
-                # For padding, position stays 0
 
         return positions
 
-    def _compute_length_guidance_loss(
-        self,
-        logits: torch.Tensor,
-        targets: torch.Tensor
-    ) -> torch.Tensor:
+    def _compute_length_guidance_loss(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
-        Compute loss that encourages EOS prediction at appropriate song length.
+        Song length guidance.
 
-        Uses sigmoid pressure that increases as we go past target song length.
+        Uses sigmoid pressure to encourage EOS prediction at appropriate song length.
         """
-        batch_size, seq_len, vocab_size = logits.shape
+        batch_size, seq_len, _ = logits.shape
         device = logits.device
 
-        # Get softmax probabilities for EOS token
+        # Get EOS probabilities
         probs = F.softmax(logits, dim=-1)
         p_eos = probs[:, :, self.eos_idx]  # [batch, seq_len]
 
-        # Create position tensor (global position in sequence)
+        # Position in sequence
         positions = torch.arange(seq_len, device=device, dtype=torch.float)
         positions = positions.unsqueeze(0).expand(batch_size, -1)
 
-        # Create mask for non-padding positions
+        # Mask for non-padding
         mask = (targets != self.pad_idx).float()
 
-        # Sigmoid pressure that increases after target length
-        # Encourages higher EOS probability as we go past target length
-        eos_pressure = torch.sigmoid(
-            (positions - self.target_song_length) / self.length_scale
-        )
+        # Sigmoid pressure: increases after target length
+        eos_pressure = torch.sigmoid((positions - self.target_song_length) / self.length_scale)
 
         # Penalty: high pressure but low EOS probability
         penalty = eos_pressure * (1 - p_eos)
@@ -237,7 +210,7 @@ class StructureAwareLoss(nn.Module):
         return loss
 
 
-def create_structure_loss(vocab, device: torch.device) -> StructureAwareLoss:
+def create_loss_function(vocab: Vocabulary, device: torch.device = config.DEVICE) -> StructureAwareLoss:
     """
     Factory function to create structure-aware loss from vocabulary.
 
@@ -248,19 +221,16 @@ def create_structure_loss(vocab, device: torch.device) -> StructureAwareLoss:
     Returns:
         StructureAwareLoss instance
     """
-    # Get hyperparameters from config
-    loss_config = getattr(config, 'STRUCTURE_LOSS', {})
-
     return StructureAwareLoss(
         vocab_size=len(vocab),
-        pad_idx=vocab.word2idx[config.PAD_TOKEN],
-        newline_idx=vocab.word2idx[config.NEWLINE_TOKEN],
-        eos_idx=vocab.word2idx[config.EOS_TOKEN],
-        target_line_length=loss_config.get('target_line_length', 6.0),
-        line_length_sigma=loss_config.get('line_length_sigma', 3.5),
-        lambda_line=loss_config.get('lambda_line', 0.1),
-        target_song_length=loss_config.get('target_song_length', 235.0),
-        length_scale=loss_config.get('length_scale', 75.0),
-        lambda_length=loss_config.get('lambda_length', 0.05),
-        newline_weight=loss_config.get('newline_weight', 2.0),
+        pad_idx=vocab.pad_idx,
+        newline_idx=vocab.newline_idx,
+        eos_idx=vocab.eos_idx,
+        target_line_length=config.STRUCTURE_LOSS['target_line_length'],
+        line_length_sigma=config.STRUCTURE_LOSS['line_length_sigma'],
+        lambda_line=config.STRUCTURE_LOSS['lambda_line'],
+        target_song_length=config.STRUCTURE_LOSS['target_song_length'],
+        length_scale=config.STRUCTURE_LOSS['length_scale'],
+        lambda_length=config.STRUCTURE_LOSS['lambda_length'],
+        newline_weight=config.STRUCTURE_LOSS['newline_weight']
     ).to(device)
