@@ -15,6 +15,7 @@ import time
 
 from . import config
 from .models import LyricsLSTMGlobal, LyricsLSTMAttention
+from .losses import create_structure_loss
 
 
 def set_seed(seed: int = config.SEED):
@@ -70,14 +71,10 @@ def train_epoch(model: nn.Module,
             # Use global MIDI features for global model
             outputs, _ = model(inputs, midi_features)
 
-        # Compute loss
+        # Compute structure-aware loss (takes full tensors, not flattened)
         # outputs: [batch, seq_len, vocab_size]
         # targets: [batch, seq_len]
-        outputs_flat = outputs.view(-1, outputs.size(-1))
-        targets_flat = targets.view(-1)
-
-        # Ignore padding in loss
-        loss = criterion(outputs_flat, targets_flat)
+        loss = criterion(outputs, targets)
 
         # Backward pass
         loss.backward()
@@ -132,11 +129,8 @@ def validate(model: nn.Module,
             else:
                 outputs, _ = model(inputs, midi_features)
 
-            # Compute loss
-            outputs_flat = outputs.view(-1, outputs.size(-1))
-            targets_flat = targets.view(-1)
-
-            loss = criterion(outputs_flat, targets_flat)
+            # Compute structure-aware loss (takes full tensors, not flattened)
+            loss = criterion(outputs, targets)
 
             total_loss += loss.item()
             num_batches += 1
@@ -147,6 +141,7 @@ def validate(model: nn.Module,
 def train_model(model: nn.Module,
                 train_loader,
                 val_loader,
+                vocab,
                 device: torch.device,
                 num_epochs: int = config.NUM_EPOCHS,
                 learning_rate: float = config.LEARNING_RATE,
@@ -159,6 +154,7 @@ def train_model(model: nn.Module,
         model: Model to train
         train_loader: Training data loader
         val_loader: Validation data loader
+        vocab: Vocabulary object (needed for structure-aware loss)
         device: Device to train on
         num_epochs: Number of training epochs
         learning_rate: Learning rate
@@ -176,8 +172,9 @@ def train_model(model: nn.Module,
         optimizer, mode='min', factor=0.5, patience=5
     )
 
-    # Loss function - ignore padding token (index 0)
-    criterion = nn.CrossEntropyLoss(ignore_index=0)
+    # Structure-aware loss function that teaches lyric structure through training
+    # Includes: weighted CE (boosted <NEWLINE>), line length penalty, song length guidance
+    criterion = create_structure_loss(vocab, device)
 
     # TensorBoard writer
     log_dir = config.PROJECT_ROOT / "runs" / f"{model_name}_{time.strftime('%Y%m%d_%H%M%S')}"

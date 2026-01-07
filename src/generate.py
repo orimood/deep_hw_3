@@ -56,13 +56,15 @@ def generate_lyrics(model: nn.Module,
                     vocab: Vocabulary,
                     start_word: str,
                     device: torch.device,
-                    max_length: int = config.MAX_LYRICS_LENGTH,
-                    max_words_per_line: int = config.MAX_WORDS_PER_LINE,
+                    max_length: int = 300,  # Safety limit only - model learns structure
                     temperature: float = config.TEMPERATURE,
                     top_k: int = config.TOP_K,
                     is_attention_model: bool = False) -> str:
     """
     Generate lyrics given MIDI features and a starting word.
+
+    The model learns proper line structure (when to insert <NEWLINE>) through
+    the structure-aware loss function during training. No hardcoded line limits.
 
     Args:
         model: Trained lyrics generation model
@@ -71,8 +73,7 @@ def generate_lyrics(model: nn.Module,
         vocab: Vocabulary object
         start_word: Starting word for generation
         device: Device to run on
-        max_length: Maximum number of words to generate
-        max_words_per_line: Maximum words per line (before inserting newline)
+        max_length: Safety limit for maximum words (model learns actual length)
         temperature: Sampling temperature
         top_k: Top-k sampling parameter
         is_attention_model: Whether model uses attention
@@ -111,8 +112,6 @@ def generate_lyrics(model: nn.Module,
     current_word = torch.tensor([[start_idx]], device=device)
     hidden = None
 
-    words_in_current_line = 1
-
     with torch.no_grad():
         for _ in range(max_length - 1):
             # Forward pass
@@ -134,18 +133,13 @@ def generate_lyrics(model: nn.Module,
             # Get the word
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
 
-            # Handle line breaks
-            if word == config.NEWLINE_TOKEN:
+            # Handle line breaks - model learns when to insert <NEWLINE> through training
+            if word == config.NEWLINE_TOKEN or word.lower() == 'newline':
                 generated_words.append('\n')
-                words_in_current_line = 0
             else:
                 generated_words.append(word)
-                words_in_current_line += 1
 
-            # Insert line break if line is too long
-            if words_in_current_line >= max_words_per_line:
-                generated_words.append('\n')
-                words_in_current_line = 0
+            # No hardcoded line length limit - model learns structure through loss function
 
             # Prepare next input
             current_word = torch.tensor([[next_idx]], device=device)
@@ -170,12 +164,12 @@ def format_lyrics(words: List[str]) -> str:
     current_line = []
 
     for word in words:
-        if word == '\n':
+        if word == '\n' or word.lower() == 'newline':
             if current_line:
                 lines.append(' '.join(current_line))
                 current_line = []
         elif word not in [config.PAD_TOKEN, config.UNK_TOKEN,
-                          config.SOS_TOKEN, config.EOS_TOKEN]:
+                          config.SOS_TOKEN, config.EOS_TOKEN, config.NEWLINE_TOKEN]:
             current_line.append(word)
 
     # Add any remaining words

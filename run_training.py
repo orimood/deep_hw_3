@@ -130,6 +130,7 @@ def main():
             model=model,
             train_loader=train_loader,
             val_loader=val_loader,
+            vocab=train_dataset.vocab,
             device=device,
             num_epochs=args.epochs,
             learning_rate=args.lr,

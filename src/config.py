@@ -54,3 +54,17 @@ DEVICE = "cuda"  # Will be updated at runtime based on availability
 
 # Random seed for reproducibility
 SEED = 42
+
+# Structure-aware loss settings (values derived from training data analysis)
+# Training data: 599 songs, 23,860 lines
+# Line length: median=6, mean=6.6, std=3.7, 75% in range 5-8 words
+# Song length: median=235, mean=261, std=146, 75% in range 172-305 words
+STRUCTURE_LOSS = {
+    'target_line_length': 6.0,    # Median words per line from data
+    'line_length_sigma': 3.5,     # Std dev from data
+    'lambda_line': 0.5,           # Weight for line length loss (aggressive)
+    'target_song_length': 235.0,  # Median total words from data
+    'length_scale': 75.0,         # Scale for length sigmoid (~half std)
+    'lambda_length': 0.2,         # Weight for length loss (aggressive)
+    'newline_weight': 1.0,        # CE weight boost for <NEWLINE> token (reduced)
+}
