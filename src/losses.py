@@ -40,7 +40,9 @@ class StructureAwareLoss(nn.Module):
         target_song_length: float = config.STRUCTURE_LOSS['target_song_length'],
         length_scale: float = config.STRUCTURE_LOSS['length_scale'],
         lambda_length: float = config.STRUCTURE_LOSS['lambda_length'],
-        newline_weight: float = config.STRUCTURE_LOSS['newline_weight']
+        newline_weight: float = config.STRUCTURE_LOSS['newline_weight'],
+        min_line_length: int = config.STRUCTURE_LOSS['min_line_length'],
+        min_song_length: int = config.STRUCTURE_LOSS['min_song_length']
     ):
         super().__init__()
 
@@ -53,11 +55,13 @@ class StructureAwareLoss(nn.Module):
         self.target_line_length = target_line_length
         self.line_length_sigma = line_length_sigma
         self.lambda_line = lambda_line
+        self.min_line_length = min_line_length
 
         # Song length parameters
         self.target_song_length = target_song_length
         self.length_scale = length_scale
         self.lambda_length = lambda_length
+        self.min_song_length = min_song_length
 
         # Create class weights for CE loss
         weights = torch.ones(vocab_size)
@@ -125,6 +129,7 @@ class StructureAwareLoss(nn.Module):
         Encourages NEWLINE at appropriate positions:
         - Penalizes low NEWLINE probability when line is too long
         - Penalizes high NEWLINE probability when line is too short
+        - HARD penalty for very short lines (< min_line_length)
         """
         batch_size, seq_len, _ = logits.shape
         device = logits.device
@@ -143,12 +148,19 @@ class StructureAwareLoss(nn.Module):
         distance_past_target = F.relu(line_positions - self.target_line_length)
         late_penalty = distance_past_target * (1 - p_newline) / self.line_length_sigma
 
-        # Early penalty: discourage NEWLINE when line is too short (<4 words)
-        early_positions = F.relu(4 - line_positions)
-        early_penalty = (early_positions ** 2) * p_newline
+        # Early penalty: discourage NEWLINE when line is too short
+        # Using EXPONENTIAL penalty for stronger effect
+        early_positions = F.relu(self.min_line_length - line_positions)
+        early_penalty = (torch.exp(early_positions) - 1) * p_newline * 5.0
+
+        # HARD penalty for very short lines (< min_line_length words)
+        # Using 100x multiplier with exponential scaling
+        very_short = (line_positions < self.min_line_length).float()
+        shortness_factor = (self.min_line_length - line_positions).clamp(min=0)
+        hard_penalty = very_short * p_newline * 100.0 * (1 + shortness_factor)  # 100x penalty
 
         # Combined penalty
-        penalty = late_penalty + early_penalty
+        penalty = late_penalty + early_penalty + hard_penalty
 
         # Apply mask and compute mean
         loss = (penalty * mask).sum() / (mask.sum() + 1e-8)
@@ -183,6 +195,7 @@ class StructureAwareLoss(nn.Module):
         Song length guidance.
 
         Uses sigmoid pressure to encourage EOS prediction at appropriate song length.
+        Also penalizes early EOS (before min_song_length).
         """
         batch_size, seq_len, _ = logits.shape
         device = logits.device
@@ -201,8 +214,16 @@ class StructureAwareLoss(nn.Module):
         # Sigmoid pressure: increases after target length
         eos_pressure = torch.sigmoid((positions - self.target_song_length) / self.length_scale)
 
-        # Penalty: high pressure but low EOS probability
-        penalty = eos_pressure * (1 - p_eos)
+        # Penalty: high pressure but low EOS probability (encourage EOS after target)
+        late_penalty = eos_pressure * (1 - p_eos)
+
+        # HARD penalty for early EOS (before min_song_length)
+        # Strongly discourage ending the song too early
+        too_short = (positions < self.min_song_length).float()
+        early_eos_penalty = too_short * p_eos * 5.0  # Strong penalty for early EOS
+
+        # Combined penalty
+        penalty = late_penalty + early_eos_penalty
 
         # Apply mask and compute mean
         loss = (penalty * mask).sum() / (mask.sum() + 1e-8)
@@ -232,5 +253,7 @@ def create_loss_function(vocab: Vocabulary, device: torch.device = config.DEVICE
         target_song_length=config.STRUCTURE_LOSS['target_song_length'],
         length_scale=config.STRUCTURE_LOSS['length_scale'],
         lambda_length=config.STRUCTURE_LOSS['lambda_length'],
-        newline_weight=config.STRUCTURE_LOSS['newline_weight']
+        newline_weight=config.STRUCTURE_LOSS['newline_weight'],
+        min_line_length=config.STRUCTURE_LOSS['min_line_length'],
+        min_song_length=config.STRUCTURE_LOSS['min_song_length']
     ).to(device)

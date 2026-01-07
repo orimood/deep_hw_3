@@ -2,15 +2,15 @@
   "model_name": "attention_melody",
   "metrics": {
     "diversity": {
-      "distinct_1": 0.2338935574229692,
-      "distinct_2": 0.7825464949928469,
-      "avg_length": 47.6,
-      "vocab_size": 167
+      "distinct_1": 0.3767441860465116,
+      "distinct_2": 0.865,
+      "avg_length": 14.333333333333334,
+      "vocab_size": 81
     },
     "structure": {
-      "avg_lines": 13.133333333333333,
-      "avg_line_length": 3.6243654822335025,
-      "line_length_std": 2.4703347002779514
+      "avg_lines": 3.4,
+      "avg_line_length": 4.215686274509804,
+      "line_length_std": 2.844421616594288
     },
     "num_test_songs": 5,
     "num_generations": 15
@@ -23,17 +23,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love you can do to say\nif we do you said me\nand i love you\ni believe i'd you\nbaby i feel\nlove\nand i see you\ni want\nyour feet\nit's all\ni would do\nand i say for\nbut i\nhe",
+          "generated_text": "love i remember\nthere is you in my eyes and be\nwords",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the the the night was the world\nin the fog of blue\nof a endless in to\nclimbing down the a street\ni'm a new world of my head\nand i can't find the world of you\ni hear your name it's mine\ni believe where we feel\nand i would reach\nyou\nis\nall\ngot\nwe",
+          "generated_text": "the morning of the rain that was the orleans\nand it started the luck of\nsong\nof\nbut",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i fought when\ni was weak a i have known\nyou stood out and the air\nyou could be for your world\n'cause i need to know\nit's got to be me\ni'll got me a\nlove\nwhen my are\ni know\nin a life\nyou're\nthat\ngirl\nlove\ni",
+          "generated_text": "i was the time to tell\ni never love that is\nbut you",
           "num_tokens": 200
         }
       ]
@@ -45,17 +45,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love about long is gone on me\nhow can to feel you baby that did me\ni thought you\n'cause i don't know that when you\nin\nno one that i ever needed to be\ni'm\none the day\ni don't\nworld\nlove",
+          "generated_text": "love you don't love me\ni can the my love i need\ni",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the meaning your eyes has be\nit's a good bit\nwe never know that you will be with you\nand now i love where you say\nwhat i got to be a place of me\nand i'm not the life i would be my arms\nwhen i\nmy lonely\ni'm\nplace\nworld\nyou",
+          "generated_text": "the meaning the the time of me\nthen it can't see in the heart\nand\nup",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i was love in the night of stone\ni know that i was knew i found about\ni don't want to take you\nand i will do\ni believe that i do\ni've be a place\nis my heart\n'cause my heart\nmy love is\nmy mind\ni\ni",
+          "generated_text": "i have it of a other day\nbut i could so\ntime",
           "num_tokens": 200
         }
       ]
@@ -67,17 +67,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love this night of the life of time\nit's that one of a life is just\nsince you are on the\ni got some long you said my heart\nyou can understand\nthis the time\nall they feel what\nit's\nnice girl\never could me\nit's\nbut\ni",
+          "generated_text": "love the time is in the world in the evening\nand then the\nand",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the love is in the pouring\noh when you have i see\nno one time to be\nbut a days will me know\nthen you really\nand there is i never needed to be\nthere i am\ni\ni just\ni'm your head\nwhen\nlove\nwe\ni'm",
+          "generated_text": "the girl of mine\nand my smile\nand the nights where\nbut this\nbaby",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i see a longest of the wheel\nand i was the magic\ni swear the shadow i see\nand i see the time i found\ni was my way\nand i just was loved\njust no\never i had\nand i'm i'm your heart\nso we're\ngone\nto",
+          "generated_text": "i knew him for your life\ni was like the moon of the skies\nand the\ni know\nand you\nmy",
           "num_tokens": 200
         }
       ]
@@ -89,18 +89,18 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love about me that i've break\nif you don't know what that i knew\nbaby if i know\nand love\noh so it\ni love about\nand\nlove\ni'm\ni feel a\nso i don't see what\nlove\nwho\nstill",
+          "generated_text": "love i can never i got that be the way\ni feel\nlove in the",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the night i used turn\nbut i see you can't love\nand the world\nno is no way to always\nhe would say\ntime are\nand all here is waiting to me\ni'll play now you\nif i found your\nwhen\ndays\ni\nmy eyes yeah my soul\ni\nmore",
+          "generated_text": "the city we are the world\nand you like my broom in the",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i need to be\nso i want to be this right the my face\nthe times is i need\ni don't need to the radio\ni saw the chance you and\ni am lost here\nwhen i was love that\nthis\ntwo one\nmy\ni\ni don't stop\nmy",
-          "num_tokens": 197
+          "generated_text": "i feel what i do\ni never need to say to you\ntime\nin your",
+          "num_tokens": 200
         }
       ]
     },
@@ -111,17 +111,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love you ain't like a heartache of day the day\nthis day that many will go\nand don't stop your fantasy\nthat it's lost so in the\nfor no one that you know\nthey know that now we can be no\nfor the\nyork\nyou\non\nthe\nthe",
+          "generated_text": "love i'm all now\nwhen the one of\nof the",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the boy\ni was a bein'\nso you needed it to find me\ni love you\nso we're all you know\nand you are what\ni was the love i will to say\njust i could\ni just\nyour face again\nand i believe\nof",
+          "generated_text": "the one of the grocery of the skies\nwe think the moon for the",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i think this love\ni need to say you feel me\nthe way of my love\ni can't know it if i care you\ni was lost you to stay\ni'm\nof my side\nthat's the\nof mine\nme\nand\na no\nnew",
+          "generated_text": "i can know goodbye oh was you and do you do\ndo you need to",
           "num_tokens": 200
         }
       ]
