@@ -1,30 +1,30 @@
 {
   "global": {
     "diversity": {
-      "distinct_1": 0.4484304932735426,
-      "distinct_2": 0.9423076923076923,
-      "avg_length": 14.866666666666667,
-      "vocab_size": 100
+      "distinct_1": 0.1239067055393586,
+      "distinct_2": 0.5912873225648556,
+      "avg_length": 137.2,
+      "vocab_size": 255
     },
     "structure": {
-      "avg_lines": 4.266666666666667,
-      "avg_line_length": 3.484375,
-      "line_length_std": 2.633867092200174
+      "avg_lines": 37.733333333333334,
+      "avg_line_length": 3.636042402826855,
+      "line_length_std": 1.2866704058088585
     },
     "num_test_songs": 5,
     "num_generations": 15
   },
   "attention": {
     "diversity": {
-      "distinct_1": 0.3767441860465116,
-      "distinct_2": 0.865,
-      "avg_length": 14.333333333333334,
-      "vocab_size": 81
+      "distinct_1": 0.12956810631229235,
+      "distinct_2": 0.5790061418202122,
+      "avg_length": 120.4,
+      "vocab_size": 234
     },
     "structure": {
-      "avg_lines": 3.4,
-      "avg_line_length": 4.215686274509804,
-      "line_length_std": 2.844421616594288
+      "avg_lines": 35.2,
+      "avg_line_length": 3.4204545454545454,
+      "line_length_std": 1.5464151426406914
     },
     "num_test_songs": 5,
     "num_generations": 15

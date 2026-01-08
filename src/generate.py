@@ -139,21 +139,24 @@ def generate_lyrics_global(
             next_idx = sample_with_temperature(logits, temperature, top_k)
 
             # Enforce minimum line length - skip NEWLINE if line too short
-            if next_idx in newline_indices and words_since_newline < min_line_words:
-                # Re-sample excluding NEWLINE tokens
-                logits_no_newline = logits.clone()
-                for nl_idx in newline_indices:
-                    logits_no_newline[nl_idx] = float('-inf')
-                next_idx = sample_with_temperature(logits_no_newline, temperature, top_k)
+            # COMMENTED OUT: Model learned structure, limits no longer needed
+            # if next_idx in newline_indices and words_since_newline < min_line_words:
+            #     # Re-sample excluding NEWLINE tokens
+            #     logits_no_newline = logits.clone()
+            #     for nl_idx in newline_indices:
+            #         logits_no_newline[nl_idx] = float('-inf')
+            #     next_idx = sample_with_temperature(logits_no_newline, temperature, top_k)
 
-            # Check for EOS - skip if under min_length
+            # Check for EOS
             if next_idx == vocab.eos_idx:
-                if len(generated_tokens) >= min_length:
-                    break
-                else:
-                    # Force re-sample excluding EOS
-                    logits[vocab.eos_idx] = float('-inf')
-                    next_idx = sample_with_temperature(logits, temperature, top_k)
+                break
+                # COMMENTED OUT: Model learned structure, limits no longer needed
+                # if len(generated_tokens) >= min_length:
+                #     break
+                # else:
+                #     # Force re-sample excluding EOS
+                #     logits[vocab.eos_idx] = float('-inf')
+                #     next_idx = sample_with_temperature(logits, temperature, top_k)
 
             # Convert to word and add to generated
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)
@@ -263,29 +266,32 @@ def generate_lyrics_attention(
             )
 
             # Enforce minimum line length - skip NEWLINE if line too short
-            if next_idx in newline_indices and words_since_newline < min_line_words:
-                # Re-sample excluding NEWLINE tokens
-                logits_no_newline = logits.clone()
-                for nl_idx in newline_indices:
-                    logits_no_newline[nl_idx] = float('-inf')
-                next_idx = sample_with_temperature(
-                    logits_no_newline, temperature, top_k,
-                    repetition_penalty_tokens=penalty_tokens,
-                    repetition_penalty=penalty
-                )
+            # COMMENTED OUT: Model learned structure, limits no longer needed
+            # if next_idx in newline_indices and words_since_newline < min_line_words:
+            #     # Re-sample excluding NEWLINE tokens
+            #     logits_no_newline = logits.clone()
+            #     for nl_idx in newline_indices:
+            #         logits_no_newline[nl_idx] = float('-inf')
+            #     next_idx = sample_with_temperature(
+            #         logits_no_newline, temperature, top_k,
+            #         repetition_penalty_tokens=penalty_tokens,
+            #         repetition_penalty=penalty
+            #     )
 
-            # Check for EOS - skip if under min_length
+            # Check for EOS
             if next_idx == vocab.eos_idx:
-                if len(generated_tokens) >= min_length:
-                    break
-                else:
-                    # Force re-sample excluding EOS
-                    logits[vocab.eos_idx] = float('-inf')
-                    next_idx = sample_with_temperature(
-                        logits.clone(), temperature, top_k,
-                        repetition_penalty_tokens=penalty_tokens,
-                        repetition_penalty=penalty
-                    )
+                break
+                # COMMENTED OUT: Model learned structure, limits no longer needed
+                # if len(generated_tokens) >= min_length:
+                #     break
+                # else:
+                #     # Force re-sample excluding EOS
+                #     logits[vocab.eos_idx] = float('-inf')
+                #     next_idx = sample_with_temperature(
+                #         logits.clone(), temperature, top_k,
+                #         repetition_penalty_tokens=penalty_tokens,
+                #         repetition_penalty=penalty
+                #     )
 
             # Convert to word and add to generated
             word = vocab.idx2word.get(next_idx, config.UNK_TOKEN)

@@ -2,15 +2,15 @@
   "model_name": "global_melody",
   "metrics": {
     "diversity": {
-      "distinct_1": 0.4484304932735426,
-      "distinct_2": 0.9423076923076923,
-      "avg_length": 14.866666666666667,
-      "vocab_size": 100
+      "distinct_1": 0.1239067055393586,
+      "distinct_2": 0.5912873225648556,
+      "avg_length": 137.2,
+      "vocab_size": 255
     },
     "structure": {
-      "avg_lines": 4.266666666666667,
-      "avg_line_length": 3.484375,
-      "line_length_std": 2.633867092200174
+      "avg_lines": 37.733333333333334,
+      "avg_line_length": 3.636042402826855,
+      "line_length_std": 1.2866704058088585
     },
     "num_test_songs": 5,
     "num_generations": 15
@@ -23,17 +23,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love a going to say\nit's looking me there\ni\nyour\nwhen i",
-          "num_tokens": 200
+          "generated_text": "love\ntell my broken girl\nyou say my heart\nthat is so\ni am that in my eyes\nand you will make\ni can't think nobody\nif i really needed\nwe can never\nand i get a dream\nthe survivor that i know\nand i know\ni will be wrong\ni'm i needed my head\nwith you",
+          "num_tokens": 71
         },
         {
           "start_word": "the",
-          "generated_text": "the time is just the good was that i knew\nis if you see the\nand\nthe\nlove",
-          "num_tokens": 131
+          "generated_text": "the time was the air\nthe year of the sea\nhow don't be the things\nyou love me how we could\ni think the end in a mornin'\ni got love\nwhen i am so\ni have lost it that i want\ni know you\nlike my love\ni can take the\ni just can\ni give you with\nand i needed to\ni think you think\ni see\ni know to you\nthe beautiful of\nbut i want to hear\nwhen that seems\nwhy i don't do you to\nbut i could believe\nbut you are\nyou are so\nwith your eyes\nthere's got away\ni'm the face\nto be waiting\nthe sun\nthe way\nfor the poison\nyou need\nsomeone\nwhat\ni never knew\ni never knew\ni drove the night\nand all are time\nall i am\nand i did\nlove\nyou want to know\ni want my\ni want to be",
+          "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i know about about i love i i never knew\ni said you\ni'd",
+          "generated_text": "i will show the night\nwhat knows about is\ndon't come the reason one\nthe time\nyou said\nwhen you are your fault\nyou may find my life\nand i loved\ni needed to get away to my heart\ni believe i was so\ni could give you\ni would give you\nyou will take on her head\noh if i need\ni can't never hold\nyou want me\njust you don't let to learn\njust got your life\ni want to think\nin the world\nare i am\ni've lost you\nwho\ni am\nmy heart\ni'm is so\ni'll it\ni am such\nmy eyes\noh i\ni won't\ni feel the right\nif you could see\nit's not the guy\ni think i've love\nyou don't take myself\nand i need to be\ni need to be\nbut i say\ni'm so\ni just have\nand i'm my dream\nwith me again\ni",
           "num_tokens": 200
         }
       ]
@@ -45,17 +45,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love you're a a man\nno i could be anyone could be here\nhe",
+          "generated_text": "love i was your face\ni know goodbye\nyou go you in the one\nand i remember the love i was\ni know you know\nyou got a fool\ni want a love\nand i knew you\nso i wish to show\nwhat can i do\nthere's all a way\nit's too no bad\ni was a chance\ni can see the way\nyou're so\ni know you needed the same\nwho would you\nmy are where\nis waiting to share\ni love you\nyou can have the same\nwhere i need\nthe only one\nif i see\nthat is in my eyes\nand i won't needed\ni get my mind\ni needed the same\nwas all\nthat's\ni can\ni love i\nand i see you\nto stay and all\ni need you\nhere that i want\nin you just\nand i feel what\ni want the\nthe one in the winter\nwe can",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the dark drops in the street\nlet all go in my beat\nman",
-          "num_tokens": 200
+          "generated_text": "the world i could see\nfor the world in your eyes\ni don't need to be\ni can believe you\nand i really i know\nit's tearing in a words\ni want to love\nwhen i really don't let\ni've be all\nif you did take\ni believe you did\ni get on the winter\nnow i do\ni am that\ni think i hear\nthe words girl\ni can't see\nto the obsession\nto give the fire\nmaybe i'll tell\nif you can't keep\nyou needed me\nnow i'm mine\ni can't want\ni could be strong\nthere's gonna stop by your life\ni don't want you\nchorus\nyou're gonna not do\nyou know that\nyou'll be your head\nyou can me\nif you want\ni see\nand i need you\nthat i am\nyou're a competitive\ni want to",
+          "num_tokens": 178
         },
         {
           "start_word": "i",
-          "generated_text": "i guess you know if i see you're so\ni have runaway\nbaby could you wait\ni'm\nshe",
+          "generated_text": "i feel you're too easy\nbut i can want to be my life\n'cause in things i know\njust i want to be\ni won't want you\ni know\ni can't have there\ni don't see your love\ni want to say\nit's how you understand\ni'm so i need\ndo i wish\ni need to go\nand i needed your way\nyou know me\ni need to give it\nyou don't believe\nthat hasn't been gone\nbaby and i could love\nbut i say\ni could be the\nno i want\nand i need the girl\ni want you\noh you\nsee your love\nwhen i need you\nyour mind\nwhen you gave me\nand you can know\nthis way that you\nwhen i see your way\ni will be afraid\nmaybe i never mean\nand don't be\ni think what i can\nall is my life\ni can believe\ni'm i'm\nand i want to go\nnow it's",
           "num_tokens": 200
         }
       ]
@@ -67,18 +67,18 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love goodbye\noh hey yeah\ni say that you\njust think\nyou're girl\ni'm",
+          "generated_text": "love i feel at my mind\nwhen i can't want your love\ni would wanna to say\nif i hear you a love\ni've got a brush\nand i'll got the\ni couldn't have the\ni've you are my mind\ni got a thousand\ni need to\nyou needed\nand if i am\ni'm the dream\na part\nbut the survivor\ni can't know\ni think\nwhen i hope\ni feel my heart\ni'll make my heart\nif you're not\ni could understand\nwhen we did\nnow i have\nwhy i will\nthe heart as\nwhen you are\ni need to see me\ni'm on you\nand if i ever knew\nwith the world\ni need to feel\nto hold you\nyou should be\nand the dream\nfor me\njust are too\nwhen i was\nand i'm your way\nand my life\nso when i'm\nwhen you're nothing\nthe best\ni need to",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the first old giant\nwell the rain in in\npeople\nis looking to\nblue",
-          "num_tokens": 200
+          "generated_text": "the way was the same of the day\ni fought the law up in you\nand you know my life is a man\nand i can't see to the way my way\nand i'm nothing i left in your side\nthat i could to see\ni was never\ni got to be the\n'cause i will say\ni know you always\ni guess that you have\ni believe i don't know\nyou need you go\n'cause my fantasy\nwhere you ever believe\nwords are so\nand and i have not\nthat i don't needed\nbut i could needed go\nwhen you hear the sun\nto find your heart\ni see it a world\nno matter much i do\nhow can to have\nyou need you need you\ni won't go\ni wish you do\nyou are the best\nand i don't go\nit we made\nand i was here to live\nand i feel",
+          "num_tokens": 185
         },
         {
           "start_word": "i",
-          "generated_text": "i could remember\nso would take me\nbut i am\nthe\ni",
-          "num_tokens": 200
+          "generated_text": "i guess how i need\nwasn't the one i could needed\nto just for myself\ni will be forever\nit's too my heart\na honesty's on the night\nyou can see\ni got the life in my arms\nthat i could see\nand if i could see\nthe night\nwe can find\nand i'm\nand we're the obsession\nif you need\ni'm",
+          "num_tokens": 78
         }
       ]
     },
@@ -89,17 +89,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love when i ever knew you be\njust i find you\ni think how i\nhere",
-          "num_tokens": 200
+          "generated_text": "love don't play your life\nand i want\nyou know you've be\nand i feel your heart\ni think what but\nwe want to tell\nwhat how i do\nwhat you want\nwhen what\nwhat you wanted\ntell me\nyou know me\nand you want me\ni feel me\ni am yeah\ni need you\nyou think\ni say the morning\ni know you\ni see you\ni won't be\ni see a world\nwhen i would give me\ni know you\ni don't see you\ni am all\nnow as you\nyou're love\ndon't have it\nthe night is stronger\nbut i'm\nall\nwe are too\nand forgettable with myself\ni won't change\ni am the your arms\nand never i want\nif i love you\nyou don't be with you",
+          "num_tokens": 171
         },
         {
           "start_word": "the",
-          "generated_text": "the my arms my name is no of\ni was\nlike\ni\nwhite",
+          "generated_text": "the moon of the air\ni want to hear\nin my eyes\ni had the world\ni knew the love\nthis could love\nwhen i was defeated\nfor an middle\ni would find the\ni'm the law\ni swear my name\ni was struggling\ni am the\ni guess i can't love\ni've you may be\ni don't want\nif you want\ni want to be the fool again\ni've tell the\nyou say\nyou are here\nso you're no\nthat the sun\nit's gonna be afraid\ni need you\ni'll love\nthat you are\nyou want to go back\nand i feel in\nit's not i know\nto believe goodbye\nyou do\ni want you\ni'll be the vision\nyou can be\ndon't have what\nyou're true\ni am\nand am\nyou needed\njust\nis\nhere\ni'll\nwhen i'm\ni drove\nbut\nwe're here\nyou're gonna\nhere\ni don't",
           "num_tokens": 200
         },
         {
           "start_word": "i",
-          "generated_text": "i was been a a place to i'm in the air\ni fought to go in my eyes\ni",
+          "generated_text": "i had the fire you go at\na night to stay\nthere's it all the one\nand we don't really to cry\nwhat would the chance\ncome the chance\nyou know the passion's\nand you go\nand it's gonna not to know\nhow don't know what we say\njust in the phone\nwhen i feel the time\ni hate of and\ni don't wanna know\nif i want to get\ni love that\ni have you\nit's not\ni'm\nthat i would knew\nbut i am\ni could i go\n'cause i'll be someone\ni don't want no\ni got to make you anymore\ni will runaway\nand just the way\nlove is not\nyou are\ni need you\ni'm be that\ni don't need to live\nwhen i knew you\ni'll tell somebody\ndon't make me\nyou would believe it\ni want you\nand i never am\ni see the day\na i won't be\ni've can to",
           "num_tokens": 200
         }
       ]
@@ -111,17 +111,17 @@
       "generations": [
         {
           "start_word": "love",
-          "generated_text": "love i'm the good world\ni swear your smile\nand there's the way\nwhen i",
+          "generated_text": "love i feel about\nyou don't need to let them\nto do me can tell\ni think\ndid i feel\ni don't want it\ni just just\nnow i ever needed\ni got just a place\nyou can make it to\njust in me\nthere's no one good\nyou're so what\ndon't give your heart\nso we're gonna know\nyou feel me\ndon't you see\nthey want it\nbut when\ni am yeah\noh yeah\nall\nmy are\nin the sun i can\nsee where a river\na one\nit's not to say\nwhen i can't give you\ni can give to you\nit i love you\ni feel my heart\nno matter\nwhat can ever leave\nknowing don't feel what\nand can all go\nit's just inside\ni think\nlove me\ni see that i'm\nif all no thing\ni want you hear\nto you don't say you\nhow i can you\ni need",
           "num_tokens": 200
         },
         {
           "start_word": "the",
-          "generated_text": "the night i need it\ni found the world\nand i see those long as you\nin",
-          "num_tokens": 200
+          "generated_text": "the morning\ni could see with the middle of the skies\nthe time of july\nand i know that i'll not\nthat i think\neverything are the days\nand the pain\nwas a hazy\nand you left it in me\nand i see\nwith the ground that you\nand all\nis here much\nit's not there\nand i feel so\nand you\nis all your arms\nthat got to love\nwhen can be\nwhen the time\nthe the time\nthey are there\nno matter for all\nwe are so a very\nno matter\nyou were the time\nso you were to\noh\ni'll\nif you know\ni know i've love you\nbut it",
+          "num_tokens": 144
         },
         {
           "start_word": "i",
-          "generated_text": "i know you want to do\nyou don't be my love\nyou\nme",
+          "generated_text": "i just want for\ni always will be\ni don't want to hear\nthere's love it girl\nyou need to be forever\nfor your eyes\nwhen you made to the\nthere\nyour tears\nwe were\nwhen you're gonna\nbut you belong\nwhen i tried\nknowing when\ni needed to go\ni need the world\ni found you\ni said to you\nis love\ni've the day\nwords is meaningless\nyou're see\nit's nothing of\ni get the vision\nand we're going alone\ni keep myself\ni want you\nsometimes i used you\ni am a dream\ni give me my world\ni i need to dance\ni could let you\ni want you go\nyou look in the storm\ni know my love\nyou will have your place\nyou're your beat\nyou don't know i can't give\ni was not you\nis the stars\ni would have you\nwhen the world\ni've was waiting\nwhen we're",
           "num_tokens": 200
         }
       ]
